@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 4: Canvas Dashboard Grid - AgyStudio</title>
+  <script src="/vendor/tailwindcss.js"></script>
+  <script src="/vendor/lucide.min.js"></script>
+  <script src="/vendor/mermaid.min.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap">
+  <style>
+    :root {
+      --bg-main: #2e3440;
+      --bg-sidebar: #242933;
+      --bg-card: #3b4252;
+      --bg-card-user: #434c5e;
+      --border: #4c566a;
+      --accent: #88c0d0;
+      --text-main: #eceff4;
+      --text-dim: #d8dee9;
+      --text-muted: #e5e9f0;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+  <!-- Top Navigation -->
+  <header class="h-14 border-b flex items-center justify-between px-6 flex-shrink-0" style="background-color: var(--bg-sidebar); border-color: var(--border);">
+    <div class="flex items-center gap-3">
+      <a href="/options.html" class="p-1.5 rounded-lg border hover:opacity-80 transition text-xs flex items-center gap-1.5" style="background-color: var(--bg-card); border-color: var(--border); color: var(--text-dim);">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> All Options
+      </a>
+      <div class="h-4 w-px bg-gray-600"></div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs px-2 py-0.5 rounded font-mono font-bold" style="background-color: var(--bg-card); color: var(--accent);">OPTION 4</span>
+        <h1 class="font-bold text-sm">Masonry Canvas Dashboard Grid</h1>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- Grid Column Switcher -->
+      <div class="flex items-center gap-1 text-xs border rounded-lg p-0.5" style="background-color: var(--bg-card); border-color: var(--border);">
+        <button onclick="setGrid(2)" class="px-2 py-1 rounded hover:bg-black/20 font-mono text-[11px]">2 Cols</button>
+        <button onclick="setGrid(3)" class="px-2 py-1 rounded hover:bg-black/20 font-mono text-[11px]">3 Cols</button>
+      </div>
+      <button onclick="alert('Option 4 Selected! Let the assistant know in chat.')" class="px-3 py-1.5 rounded-md text-xs font-semibold hover:opacity-90 transition flex items-center gap-1.5 shadow" style="background-color: var(--accent); color: var(--bg-main);">
+        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Vote Option 4
+      </button>
+    </div>
+  </header>
+
+  <!-- Masonry Canvas Viewport -->
+  <div class="flex-1 overflow-y-auto p-6">
+    <div id="gridWrapper" class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-7xl mx-auto">
+      
+      <!-- Card 1: User Prompt -->
+      <div class="rounded-xl border p-4 shadow-sm" style="background-color: var(--bg-card); border-color: var(--border);">
+        <div class="flex items-center justify-between text-[11px] font-mono mb-2" style="color: var(--accent);">
+          <span class="flex items-center gap-1"><i data-lucide="user" class="w-3 h-3"></i> Query Card #1</span>
+          <span class="text-gray-400">01:00 AM</span>
+        </div>
+        <p class="text-xs leading-relaxed">
+          Provide a structural breakdown of a sovereign AI datacenter compute cluster with topology architecture and thermal cooling specs.
+        </p>
+      </div>
+
+      <!-- Card 2: Wide Architecture Diagram (Spans 2 columns) -->
+      <div id="diagCard" class="md:col-span-2 rounded-xl border p-4 shadow-sm" style="background-color: var(--bg-card); border-color: var(--border);">
+        <div class="flex items-center justify-between text-[11px] font-mono mb-3 border-b pb-2" style="border-color: var(--border); color: var(--accent);">
+          <span class="flex items-center gap-1.5 font-bold"><i data-lucide="cpu" class="w-3.5 h-3.5 text-emerald-400"></i> Compute Cluster Topology (Wide Span)</span>
+          <span class="text-[10px] text-gray-400">Span: 2 Columns</span>
+        </div>
+        <div class="p-4 rounded-lg flex justify-center bg-[#242933] border" style="border-color: var(--border);">
+          <div class="mermaid">
+flowchart LR
+  Substation["1 GW Primary Grid (345kV)"] --> Transformers["Liquid Substation Step-Down"]
+  Transformers --> Switchgear["Medium Voltage Switchgear"]
+  Switchgear --> CDU["Coolant Distribution Units (CDUs)"]
+  CDU --> Racks["High-Density GPU Racks (120 kW/rack)"]
+  Racks --> HeatExchanger["Dry Cooler Loops"]
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Financial & Thermal Metrics -->
+      <div class="rounded-xl border p-4 shadow-sm" style="background-color: var(--bg-card); border-color: var(--border);">
+        <div class="flex items-center justify-between text-[11px] font-mono mb-2 text-cyan-300">
+          <span class="flex items-center gap-1"><i data-lucide="thermometer" class="w-3 h-3"></i> Thermal Specs</span>
+          <span class="text-emerald-400">PUE: 1.15</span>
+        </div>
+        <ul class="text-xs space-y-1.5 text-gray-300">
+          <li><strong>Inlet Temp:</strong> 32°C direct-to-chip water</li>
+          <li><strong>Pumping Power:</strong> 4.2 MW total parasitic load</li>
+          <li><strong>Redundancy:</strong> N+2 pump skids</li>
+        </ul>
+      </div>
+
+      <!-- Card 4: Code Implementation -->
+      <div class="md:col-span-2 rounded-xl border p-4 shadow-sm" style="background-color: var(--bg-card); border-color: var(--border);">
+        <div class="flex items-center justify-between text-[11px] font-mono mb-2" style="color: var(--accent);">
+          <span class="flex items-center gap-1"><i data-lucide="terminal" class="w-3 h-3"></i> Infrastructure Monitoring Script</span>
+          <span class="text-gray-400">Python 3.12</span>
+        </div>
+        <pre class="font-mono text-xs p-3 rounded bg-[#242933] overflow-x-auto text-gray-200">
+async def monitor_cdu_telemetry(cdu_id: str):
+    telemetry = await fetch_modbus_registers(cdu_id)
+    if telemetry.return_temp_c > 45.0:
+        await trigger_variable_speed_boost(delta_rpm=1200)
+    return {"status": "nominal", "flow_rate_lpm": telemetry.flow_lpm}</pre>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+
+    function setGrid(cols) {
+      const grid = document.getElementById('gridWrapper');
+      const diag = document.getElementById('diagCard');
+      if (cols === 2) {
+        grid.className = "grid grid-cols-1 md:grid-cols-2 gap-5 max-w-7xl mx-auto";
+        diag.className = "md:col-span-2 rounded-xl border p-4 shadow-sm";
+      } else {
+        grid.className = "grid grid-cols-1 md:grid-cols-3 gap-5 max-w-7xl mx-auto";
+        diag.className = "md:col-span-2 rounded-xl border p-4 shadow-sm";
+      }
+    }
+  </script>
+</body>
+</html>

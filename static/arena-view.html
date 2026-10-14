@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 2: Model Arena & Parallel Compare - AgyStudio</title>
+  <script src="/vendor/tailwindcss.js"></script>
+  <script src="/vendor/lucide.min.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap">
+  <style>
+    :root {
+      --bg-main: #2e3440;
+      --bg-sidebar: #242933;
+      --bg-card: #3b4252;
+      --bg-card-user: #434c5e;
+      --border: #4c566a;
+      --accent: #88c0d0;
+      --text-main: #eceff4;
+      --text-dim: #d8dee9;
+      --text-muted: #e5e9f0;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+  <!-- Top Navigation -->
+  <header class="h-14 border-b flex items-center justify-between px-6 flex-shrink-0" style="background-color: var(--bg-sidebar); border-color: var(--border);">
+    <div class="flex items-center gap-3">
+      <a href="/options.html" class="p-1.5 rounded-lg border hover:opacity-80 transition text-xs flex items-center gap-1.5" style="background-color: var(--bg-card); border-color: var(--border); color: var(--text-dim);">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> All Options
+      </a>
+      <div class="h-4 w-px bg-gray-600"></div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs px-2 py-0.5 rounded font-mono font-bold" style="background-color: var(--bg-card); color: var(--accent);">OPTION 2</span>
+        <h1 class="font-bold text-sm">Model Arena & Parallel Comparison</h1>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="runSimulation()" class="px-3 py-1.5 rounded-md text-xs font-semibold hover:opacity-90 transition flex items-center gap-1.5 border border-cyan-400/40 text-cyan-300 hover:bg-cyan-900/20">
+        <i data-lucide="play" class="w-3.5 h-3.5"></i> Re-Simulate A/B Stream
+      </button>
+      <button onclick="alert('Option 2 Selected! Let the assistant know in chat.')" class="px-3 py-1.5 rounded-md text-xs font-semibold hover:opacity-90 transition flex items-center gap-1.5 shadow" style="background-color: var(--accent); color: var(--bg-main);">
+        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Vote Option 2
+      </button>
+    </div>
+  </header>
+
+  <!-- Arena Prompt Bar -->
+  <div class="p-4 border-b flex flex-col gap-2" style="background-color: var(--bg-sidebar); border-color: var(--border);">
+    <div class="flex items-center justify-between text-xs text-gray-400">
+      <span class="font-mono">Benchmarking Query:</span>
+      <span class="text-emerald-400 font-mono text-[11px]">Synchronous Dual Dispatch</span>
+    </div>
+    <div class="p-3 rounded-lg border text-xs font-mono" style="background-color: var(--bg-card); border-color: var(--border);">
+      "Calculate the CapEx breakdown and LCOE for a 1 GW ERCOT battery-backed solar data center farm. Compare high vs low reasoning effort."
+    </div>
+  </div>
+
+  <!-- Arena Parallel Columns (Wide View) -->
+  <div class="flex-1 flex overflow-hidden p-4 gap-4">
+    
+    <!-- Model A Column -->
+    <div class="flex-1 flex flex-col rounded-xl border overflow-hidden shadow-lg" style="background-color: var(--bg-card); border-color: var(--border);">
+      <!-- Column Header -->
+      <div class="p-3 border-b flex items-center justify-between" style="background-color: var(--bg-card-user); border-color: var(--border);">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+          <div>
+            <h3 class="font-bold text-xs">Model A: Claude 3.7 Sonnet (Thinking: Low)</h3>
+            <p class="text-[10px] text-gray-300 font-mono">Effort: Low | Speed: Fast Response</p>
+          </div>
+        </div>
+        <!-- Metric badge -->
+        <div class="text-right font-mono text-[10px]">
+          <span class="text-cyan-300">2.91s</span> | <span class="text-gray-300">384 tokens</span>
+        </div>
+      </div>
+
+      <!-- Column Content -->
+      <div class="flex-1 p-4 overflow-y-auto space-y-3 text-xs leading-relaxed">
+        <div class="p-2 rounded font-mono text-[11px] border" style="background-color: var(--bg-main); border-color: var(--border); color: var(--accent);">
+          antigravity:claude-3-7-sonnet:low:2026-09-13T01:00:00:2026-09-13T01:00:03:384
+        </div>
+        <h4 class="font-bold text-sm text-cyan-300">1. CapEx Summary (Direct Estimate)</h4>
+        <p>Total CapEx for a 1 GW deployment in ERCOT is estimated between <strong>$1.15B – $1.30B</strong>:</p>
+        <ul class="list-disc ml-5 space-y-1 text-gray-300">
+          <li><strong>Solar PV (1.4 GW DC Overbuild):</strong> $1.05/W = $1.05B</li>
+          <li><strong>BESS (4-hour 400 MW/1.6 GWh):</strong> $180/kWh = $288M</li>
+          <li><strong>Interconnection & Substation (345 kV):</strong> $45M</li>
+        </ul>
+        <h4 class="font-bold text-sm text-cyan-300">2. LCOE Range</h4>
+        <p>Blended Levelized Cost of Energy: <strong>$41.20 / MWh</strong> assuming 30% ITC credits under IRA Section 48.</p>
+      </div>
+
+      <!-- Footer Rating Bar -->
+      <div class="p-2.5 border-t flex items-center justify-between text-xs" style="background-color: var(--bg-card-user); border-color: var(--border);">
+        <span class="text-gray-400 text-[11px]">Rank Output:</span>
+        <div class="flex gap-1">
+          <button class="px-2 py-0.5 rounded border hover:bg-cyan-500/20 text-cyan-300 text-xs font-mono">👍 Better Speed</button>
+          <button class="px-2 py-0.5 rounded border hover:bg-black/20 text-gray-300 text-xs font-mono">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Model B Column -->
+    <div class="flex-1 flex flex-col rounded-xl border overflow-hidden shadow-lg" style="background-color: var(--bg-card); border-color: var(--border);">
+      <!-- Column Header -->
+      <div class="p-3 border-b flex items-center justify-between" style="background-color: var(--bg-card-user); border-color: var(--border);">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+          <div>
+            <h3 class="font-bold text-xs">Model B: Gemini 2.5 Pro (Thinking: High)</h3>
+            <p class="text-[10px] text-gray-300 font-mono">Effort: High | Deep Parametric Math</p>
+          </div>
+        </div>
+        <!-- Metric badge -->
+        <div class="text-right font-mono text-[10px]">
+          <span class="text-amber-300">4.75s</span> | <span class="text-gray-300">628 tokens</span>
+        </div>
+      </div>
+
+      <!-- Column Content -->
+      <div class="flex-1 p-4 overflow-y-auto space-y-3 text-xs leading-relaxed">
+        <div class="p-2 rounded font-mono text-[11px] border" style="background-color: var(--bg-main); border-color: var(--border); color: var(--accent);">
+          antigravity:gemini-2.5-pro:high:2026-09-13T01:00:00:2026-09-13T01:00:05:628
+        </div>
+        <h4 class="font-bold text-sm text-amber-300">1. Rigorous Financial & Physical Formulation</h4>
+        <p>A 1 GW continuous 24/7 IT load requires a 2.4x solar multiplier plus 8-hour storage backing to sustain 99.95% uptime without thermal peaker dispatch:</p>
+        <div class="p-2 rounded border font-mono text-[11px]" style="background-color: var(--bg-sidebar); border-color: var(--border);">
+          CapEx_Total = Σ(PV_Capex * 2.4) + BESS_Capex(8h) + ERCOT_Interconnect<br>
+          CapEx_Total = $1,920,000,000 + $720,000,000 + $60,000,000 = $2.70 Billion
+        </div>
+        <h4 class="font-bold text-sm text-amber-300">2. Sensitivity Analysis (WACC 7.5% vs 9.0%)</h4>
+        <p>At 7.5% WACC, LCOE settles at <strong>$54.80/MWh</strong>. Degradation model accounts for 0.5% yearly solar degradation and battery augmentation at Year 8.</p>
+      </div>
+
+      <!-- Footer Rating Bar -->
+      <div class="p-2.5 border-t flex items-center justify-between text-xs" style="background-color: var(--bg-card-user); border-color: var(--border);">
+        <span class="text-gray-400 text-[11px]">Rank Output:</span>
+        <div class="flex gap-1">
+          <button class="px-2 py-0.5 rounded border hover:bg-amber-500/20 text-amber-300 text-xs font-mono">👍 Better Math Depth</button>
+          <button class="px-2 py-0.5 rounded border hover:bg-black/20 text-gray-300 text-xs font-mono">Copy</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+    function runSimulation() {
+      alert("Simulated parallel model run: Dispatches dual queries to CLI and benchmarks latency in real-time across wide columns!");
+    }
+  </script>
+</body>
+</html>

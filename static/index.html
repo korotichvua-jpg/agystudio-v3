@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="nord">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>AgyStudio v3 - Intelligent Agent Canvas & Model Router</title>
+  <!-- Tailwind CSS -->
+  <script src="/vendor/tailwindcss.js"></script>
+  <!-- Marked for Markdown Parsing -->
+  <script src="/vendor/marked.min.js"></script>
+  <!-- KaTeX for math formula rendering -->
+  <link rel="stylesheet" href="/vendor/katex.min.css">
+  <script src="/vendor/katex.min.js"></script>
+  <script src="/vendor/auto-render.min.js"></script>
+  <!-- Mermaid for diagrams -->
+  <script src="/vendor/mermaid.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="/vendor/lucide.min.js"></script>
+
+  <script>
+    if (typeof tailwind !== 'undefined') {
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+              mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+            }
+          }
+        }
+      };
+    }
+  </script>
+
+  <style>
+    /* Theme color variables */
+    [data-theme="nord"] {
+      --bg-main: #242933;
+      --bg-sidebar: #1e222a;
+      --bg-card: #2e3440;
+      --bg-card-user: #3b4252;
+      --border: #434c5e;
+      --text-main: #eceff4;
+      --text-muted: #d8dee9;
+      --text-dim: #9aa5b8;
+      --accent: #88c0d0;
+      --accent-hover: #81a1c1;
+    }
+    [data-theme="catppuccin"] {
+      --bg-main: #1e1e2e;
+      --bg-sidebar: #181825;
+      --bg-card: #24273a;
+      --bg-card-user: #363a4f;
+      --border: #45475a;
+      --text-main: #cad3f5;
+      --text-muted: #b8c0e0;
+      --text-dim: #8087a2;
+      --accent: #c6a0f6;
+      --accent-hover: #b7bdf8;
+    }
+    [data-theme="gruvbox"] {
+      --bg-main: #282828;
+      --bg-sidebar: #1d2021;
+      --bg-card: #32302f;
+      --bg-card-user: #3c3836;
+      --border: #504945;
+      --text-main: #ebdbb2;
+      --text-muted: #d5c4a1;
+      --text-dim: #a89984;
+      --accent: #fe8019;
+      --accent-hover: #fabd2f;
+    }
+    [data-theme="solarized"] {
+      --bg-main: #002b36;
+      --bg-sidebar: #00212b;
+      --bg-card: #073642;
+      --bg-card-user: #0b4352;
+      --border: #586e75;
+      --text-main: #93a1a1;
+      --text-muted: #eee8d5;
+      --text-dim: #657b83;
+      --accent: #2aa198;
+      --accent-hover: #268bd2;
+    }
+    [data-theme="milk"] {
+      --bg-main: #FAF8F5;
+      --bg-sidebar: #F2EFE9;
+      --bg-card: #FFFFFF;
+      --bg-card-user: #ECE6DC;
+      --border: #DDD6C9;
+      --text-main: #23272F;
+      --text-muted: #555C6B;
+      --text-dim: #848D9E;
+      --accent: #2762B8;
+      --accent-hover: #1B4D99;
+    }
+
+    [data-theme="milk"] #messagesContainer > div > div {
+      box-shadow: 0 1px 4px rgba(35, 39, 47, 0.06);
+    }
+
+    [data-theme="milk"] .katex {
+      color: #23272F;
+    }
+
+    [data-theme="milk"] .prose-content pre {
+      background-color: #F4EFEB;
+      border-color: #DDD6C9;
+      color: #23272F;
+    }
+
+    [data-theme="milk"] .prose-content code {
+      background-color: #EFE9DF;
+      color: #1B4D99;
+    }
+
+    [data-theme="milk"] .mermaid-container {
+      background: #FFFFFF;
+      border-color: #DDD6C9;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* Markdown body styles */
+    .prose-content {
+      color: var(--text-main);
+      line-height: 1.7;
+    }
+    .prose-content h1, .prose-content h2, .prose-content h3, .prose-content h4 {
+      color: var(--accent);
+      font-weight: 700;
+      margin-top: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+    .prose-content h1 { font-size: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; }
+    .prose-content h2 { font-size: 1.3rem; }
+    .prose-content h3 { font-size: 1.15rem; }
+    .prose-content p { margin-bottom: 0.85rem; }
+    .prose-content ul, .prose-content ol { margin-left: 1.5rem; margin-bottom: 0.85rem; list-style-type: disc; }
+    .prose-content ol { list-style-type: decimal; }
+    .prose-content li { margin-bottom: 0.25rem; }
+    .prose-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.25rem 0;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .prose-content th {
+      background-color: var(--bg-card-user);
+      color: var(--accent);
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+    }
+    .prose-content td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .prose-content pre {
+      background-color: var(--bg-sidebar);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      margin: 1rem 0;
+    }
+    .prose-content code {
+      font-family: 'JetBrains Mono', monospace;
+      background-color: var(--bg-sidebar);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.9em;
+      color: var(--accent);
+    }
+    .prose-content pre code {
+      background-color: transparent;
+      padding: 0;
+      color: inherit;
+    }
+    .prose-content blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 1rem;
+      margin: 1rem 0;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    /* Mermaid diagrams container */
+    .mermaid-container {
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 1.25rem 0;
+      overflow-x: auto;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Collapsible Sidebar & Zen Mode Transitions */
+    aside#mainSidebar {
+      transition: all 0.2s ease-in-out;
+    }
+    aside#mainSidebar.sidebar-collapsed {
+      display: none !important;
+    }
+    body.zen-mode header,
+    body.zen-mode #sessionUsageHUD {
+      display: none !important;
+    }
+
+    /* Floating Sticky Outline Navigator / Mini-Map */
+    #outlineMiniMap {
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    #outlineMiniMap:hover {
+      opacity: 1 !important;
+    }
+    .outline-item {
+      transition: color 0.15s ease, background-color 0.15s ease;
+    }
+    .outline-item:hover {
+      background-color: var(--bg-card-user);
+      color: var(--accent);
+    }
+
+    /* Wide Screen Layout Modes */
+    body.canvas-mode-grid #messagesContainer {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 1.25rem;
+      align-items: start;
+    }
+    body.canvas-mode-grid #messagesContainer > div {
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+    body.canvas-mode-grid #messagesContainer .mermaid-block {
+      grid-column: 1 / -1;
+    }
+    body.canvas-mode-grid #emptyState {
+      grid-column: 1 / -1;
+    }
+
+    /* Arena Mode: Side-by-Side Dual Column Messages */
+    body.canvas-mode-arena #messagesContainer {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.25rem;
+      align-items: start;
+    }
+    body.canvas-mode-arena #messagesContainer > div {
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+    body.canvas-mode-arena #messagesContainer > div.items-end {
+      grid-column: 1 / -1;
+    }
+    body.canvas-mode-arena #emptyState {
+      grid-column: 1 / -1;
+    }
+
+    /* Split Live Diagram Workspace Pane */
+    #splitArtifactPane {
+      transition: width 0.2s ease-in-out;
+    }
+    #splitArtifactGutter {
+      width: 6px;
+      cursor: col-resize;
+      background: var(--border);
+      transition: background 0.15s;
+    }
+    #splitArtifactGutter:hover, #splitArtifactGutter.dragging {
+      background: var(--accent);
+    }
+  </style>
+</head>
+<body class="h-screen flex overflow-hidden relative">
+
+  <!-- Sidebar: Sessions & Settings -->
+  <aside id="mainSidebar" class="w-72 flex-shrink-0 flex flex-col border-r" style="background-color: var(--bg-sidebar); border-color: var(--border);">
+    <!-- App Brand -->
+    <div class="p-4 border-b flex items-center justify-between" style="border-color: var(--border);">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg" style="background-color: var(--accent); color: var(--bg-main);">
+          ⚡
+        </div>
+        <div>
+          <h1 class="font-bold text-sm tracking-wide">AgyStudio</h1>
+          <p class="text-xs" style="color: var(--text-dim);">AI Canvas & Studio</p>
+        </div>
+      </div>
+      <button id="newSessionBtn" class="p-1.5 rounded-md hover:opacity-80 transition" style="background-color: var(--bg-card); border: 1px solid var(--border);" title="New Session">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Predefined Complex Domains -->
+    <div class="px-3 pt-3">
+      <div class="flex items-center justify-between px-2 mb-1.5">
+        <p class="text-[11px] font-semibold uppercase tracking-wider" style="color: var(--text-dim);">Complex Presets</p>
+        <span class="text-[10px] px-1.5 py-0.5 rounded" style="background-color: var(--bg-card); color: var(--accent);">4 Domains</span>
+      </div>
+      <div class="space-y-1 text-xs">
+        <!-- Economics -->
+        <details class="group rounded-md border" style="background-color: var(--bg-card); border-color: var(--border);">
+          <summary class="cursor-pointer px-2.5 py-1.5 font-medium flex items-center justify-between list-none select-none text-[11px]" style="color: var(--text-main);">
+            <span class="flex items-center gap-1.5"><span>📊</span> Economics & Infra</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 group-open:rotate-180 transition-transform"></i>
+          </summary>
+          <div class="p-1.5 pt-0 space-y-1">
+            <button onclick="loadTemplate('datacenter')" class="w-full text-left text-[11px] px-2 py-1 rounded hover:opacity-80 transition" style="color: var(--text-muted);">
+              • 1 GW Data Center Cost Chain (Texas)
+            </button>
+            <button onclick="loadTemplate('macro_inflation')" class="w-full text-left text-[11px] px-2 py-1 rounded hover:opacity-80 transition" style="color: var(--text-muted);">
+              • Phillips Curve & Neutral Rate (r*)
+            </button>
+          </div>
+        </details>
+
+        <!-- Investment -->
+        <details class="group rounded-md border" style="background-color: var(--bg-card); border-color: var(--border);">
+          <summary class="cursor-pointer px-2.5 py-1.5 font-medium flex items-center justify-between list-none select-none text-[11px]" style="color: var(--text-main);">
+            <span class="flex items-center gap-1.5"><span>💼</span> Investment & PE</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 group-open:rotate-180 transition-transform"></i>
+          </summary>
+          <div class="p-1.5 pt-0 space-y-1">
+            <button onclick="loadTemplate('dcf_lbo')" class="w-full text-left text-[11px] px-2 py-1 rounded hover:opacity-80 transition" style="color: var(--text-muted);">
+              • LBO Model: 15-Yr Return & IRR
+            </button>
+            <button onclick="loadTemplate('ercot_4cp')" class="w-full text-left text-[11px] px-2 py-1 rounded hover:opacity-80 transition" style="color: var(--text-muted);">
+              • ERCOT 4CP Peak Shaving BESS ROI
+            </button>
+          </div>
+        </details>
+
+        <!-- Astronomy -->
+        <details class="group rounded-md border" style="background-color: var(--bg-card); border-color: var(--border);">
+          <summary class="cursor-pointer px-2.5 py-1.5 font-medium flex items-center justify-between list-none select-none text-[11px]" style="color: var(--text-main);">
+            <span class="flex items-center gap-1.5"><span>🔭</span> Astrophysics & Space</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 group-open:rotate-180 transition-transform"></i>
+          </summary>
+          <div class="p-1.5 pt-0 space-y-1">
+            <button onclick="loadTemplate('hohmann_orbit')" class="w-full text-left text-[11px] px-2 py-1 rounded hover:opacity-80 transition" style="color: var(--text-muted);">
+              • Earth-Mars Hohmann Transfer & $\Delta v$
+            </button>
+            <button onclick="loadTemplate('black_hole')" class="w-full text-left text-[11px] px-2 py-1 rounded hover:opacity-80 transition" style="color: var(--text-muted);">
+              • Kerr Black Hole Ergosurface & Relativistic Jets
+            </button>
+          </div>
+        </details>
+
+        <!-- Software Engineering -->
+        <details class="group rounded-md border" style="background-color: var(--bg-card); border-color: var(--border);">
+          <summary class="cursor-pointer px-2.5 py-1.5 font-medium flex items-center justify-between list-none select-none text-[11px]" style="color: var(--text-main);">
+            <span class="flex items-center gap-1.5"><span>⚙️</span> Software Architecture</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 group-open:rotate-180 transition-transform"></i>
+          </summary>
+          <div class="p-1.5 pt-0 space-y-1">
+            <button onclick="loadTemplate('distributed_consensus')" class="w-full text-left text-[11px] px-2 py-1 rounded hover:opacity-80 transition" style="color: var(--text-muted);">
+              • Raft Consensus & Byzantine Fault Tolerance
+            </button>
+            <button onclick="loadTemplate('event_driven')" class="w-full text-left text-[11px] px-2 py-1 rounded hover:opacity-80 transition" style="color: var(--text-muted);">
+              • High-Throughput Event Mesh & CQRS
+            </button>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- Sessions List -->
+    <div class="flex-1 overflow-y-auto px-3 py-3 space-y-1" id="sessionList">
+      <!-- Injected via JS -->
+    </div>
+
+    <!-- Theme & Engine Control Footer -->
+    <div class="p-3 border-t space-y-2" style="border-color: var(--border); background-color: var(--bg-sidebar);">
+      <!-- Google / Gmail Authenticated Identity Indicator -->
+      <div class="px-2 py-1.5 rounded-lg border flex flex-col gap-1" style="background-color: var(--bg-card); border-color: var(--border);">
+        <div class="flex items-center justify-between text-[10px]" style="color: var(--text-dim);">
+          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block"></span> Google Antigravity Auth:</span>
+          <span id="osUserBadge" class="font-mono text-[9px]">alpha1</span>
+        </div>
+        <div id="gmailUserBadge" class="font-mono text-xs font-semibold truncate" style="color: var(--accent);" title="Active Google Account">
+          Loading...
+        </div>
+      </div>
+
+      <!-- Model Selector -->
+      <div class="flex items-center justify-between text-xs">
+        <span style="color: var(--text-dim);"><i data-lucide="brain-circuit" class="w-3.5 h-3.5 inline mr-1"></i>Model:</span>
+        <select id="modelSelect" class="text-xs rounded px-2 py-1 outline-none cursor-pointer max-w-[150px] truncate" style="background-color: var(--bg-card); border: 1px solid var(--border); color: var(--text-main);">
+          <option value="auto-router">⚡ Auto-Router</option>
+        </select>
+      </div>
+
+      <div class="flex items-center justify-between text-xs">
+        <span style="color: var(--text-dim);"><i data-lucide="palette" class="w-3.5 h-3.5 inline mr-1"></i>Eye Comfort:</span>
+        <select id="themeSelect" class="text-xs rounded px-2 py-1 outline-none cursor-pointer" style="background-color: var(--bg-card); border: 1px solid var(--border); color: var(--text-main);">
+          <option value="milk">🥛 White Milk (Day)</option>
+          <option value="nord">Nord Dark</option>
+          <option value="catppuccin">Catppuccin</option>
+          <option value="gruvbox">Gruvbox Warm</option>
+          <option value="solarized">Solarized Dark</option>
+        </select>
+      </div>
+
+      <div class="flex items-center justify-between text-xs">
+        <span style="color: var(--text-dim);"><i data-lucide="cpu" class="w-3.5 h-3.5 inline mr-1"></i>Effort:</span>
+        <select id="effortSelect" class="text-xs rounded px-2 py-1 outline-none cursor-pointer" style="background-color: var(--bg-card); border: 1px solid var(--border); color: var(--text-main);">
+          <option value="low">Low (Fast)</option>
+          <option value="medium">Medium</option>
+          <option value="high">High (Deep Math)</option>
+        </select>
+      </div>
+
+      <!-- Thinking Budget Selector -->
+      <div class="flex items-center justify-between text-xs">
+        <span style="color: var(--text-dim);"><i data-lucide="sparkles" class="w-3.5 h-3.5 inline mr-1"></i>Thinking:</span>
+        <select id="thinkingBudgetSelect" class="text-xs rounded px-2 py-1 outline-none cursor-pointer" style="background-color: var(--bg-card); border: 1px solid var(--border); color: var(--text-main);">
+          <option value="">Auto (Default)</option>
+          <option value="2048">2k tokens</option>
+          <option value="8192">8k tokens</option>
+          <option value="16384">16k tokens</option>
+          <option value="32768">32k tokens</option>
+          <option value="64000">64k tokens</option>
+        </select>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Canvas Chat Area -->
+  <main class="flex-1 flex flex-col min-w-0" style="background-color: var(--bg-main);">
+    <!-- Canvas Top Bar -->
+    <header class="h-14 border-b flex items-center justify-between px-6 flex-shrink-0" style="border-color: var(--border); background-color: var(--bg-main);">
+      <div class="flex items-center gap-3">
+        <!-- Sidebar Toggle Button (Ctrl+B) -->
+        <button id="toggleSidebarBtn" class="p-1.5 rounded-lg border hover:opacity-80 transition flex items-center justify-center text-xs" style="background-color: var(--bg-card); border-color: var(--border); color: var(--text-main);" title="Toggle Sidebar (Ctrl+B)">
+          <i data-lucide="panel-left" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Quick Day (White Milk) / Night Toggle Button -->
+        <button id="quickDayNightBtn" class="p-1.5 rounded-lg border hover:opacity-80 transition flex items-center justify-center text-xs" style="background-color: var(--bg-card); border-color: var(--border); color: var(--text-main);" title="Toggle Day (White Milk) / Night Mode">
+          <i data-lucide="sun-medium" id="quickDayNightIcon" class="w-4 h-4 text-amber-500"></i>
+        </button>
+
+        <h2 id="currentSessionTitle" class="font-semibold text-sm truncate max-w-xs">Select or Start a Session</h2>
+        <span id="liveStatusBadge" class="hidden text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block"></span> Processing
+        </span>
+      </div>
+
+      <!-- Agy Session Details Badge Pill & Controls -->
+      <div class="flex items-center gap-2">
+        <div id="sessionDetailsPill" class="hidden items-center gap-3 px-3 py-1 rounded-lg text-[11px] border" style="background-color: var(--bg-card); border-color: var(--border); color: var(--text-dim);">
+          <div class="flex items-center gap-1.5" title="Agy CLI Conversation UUID">
+            <span class="w-1.5 h-1.5 rounded-full" style="background-color: var(--accent);"></span>
+            <span>CID: <span id="telemetryConvId" class="font-mono text-[10px]" style="color: var(--text-main);">-</span></span>
+          </div>
+          <span class="text-gray-500">|</span>
+          <div title="Compute duration of last agy turn">
+            <i data-lucide="timer" class="w-3 h-3 inline"></i> <span id="telemetryDuration" class="font-mono" style="color: var(--text-main);">0.0s</span>
+          </div>
+          <span class="text-gray-500">|</span>
+          <div title="Total token usage for this session">
+            <i data-lucide="zap" class="w-3 h-3 inline"></i> <span id="telemetryTokens" class="font-mono" style="color: var(--text-main);">0 tok</span>
+          </div>
+        </div>
+
+        <!-- Sticky Outline Mini-Map Toggle -->
+        <button id="toggleOutlineBtn" class="text-xs px-2.5 py-1.5 rounded-md hover:opacity-80 transition flex items-center gap-1.5" style="background-color: var(--bg-card); border: 1px solid var(--border); color: var(--text-dim);" title="Toggle Sticky Outline Navigator">
+          <i data-lucide="list-tree" class="w-3.5 h-3.5"></i>
+          <span>Outline</span>
+        </button>
+
+        <!-- Zen Mode Toggle Button -->
+        <button id="toggleZenBtn" class="text-xs px-2.5 py-1.5 rounded-md hover:opacity-80 transition flex items-center gap-1.5" style="background-color: var(--bg-card); border: 1px solid var(--border); color: var(--text-dim);" title="Toggle Zen / Maximizer Mode (Esc to Exit)">
+          <i data-lucide="maximize" class="w-3.5 h-3.5"></i>
+          <span id="zenBtnText">Zen</span>
+        </button>
+
+        <!-- Visual Layout Mode Selector (Safe / Test All Modes) -->
+        <div class="flex items-center gap-1 border rounded-lg p-0.5" style="background-color: var(--bg-card); border-color: var(--border);">
+          <i data-lucide="columns" class="w-3.5 h-3.5 ml-1.5" style="color: var(--accent);" title="Layout Canvas Mode"></i>
+          <select id="canvasModeSelect" class="text-xs rounded px-2 py-1 outline-none cursor-pointer font-mono font-medium" style="background-color: transparent; border: none; color: var(--text-main);" title="Switch Wide-Screen Canvas Layout Mode">
+            <option value="standard">Canvas: Standard</option>
+            <option value="split">Canvas: Split (Live Artifact)</option>
+            <option value="arena">Canvas: Arena (Dual Column)</option>
+            <option value="grid">Canvas: Masonry Grid</option>
+            <option value="dock">Canvas: Inspector Dock</option>
+          </select>
+        </div>
+
+        <!-- Podman Drive D: Secure Sandbox Selector & Storage -->
+        <div class="flex items-center gap-1 border rounded-lg p-0.5" style="background-color: var(--bg-card); border-color: var(--border);" title="Execution Isolation & Sandbox">
+          <i data-lucide="shield-check" id="sandboxShieldIcon" class="w-3.5 h-3.5 ml-1.5 text-emerald-400"></i>
+          <select id="sandboxModeSelect" class="text-xs rounded px-1.5 py-1 outline-none cursor-pointer font-mono font-medium" style="background-color: transparent; border: none; color: var(--text-main);" title="Switch Execution Sandbox">
+            <option value="podman_secure_d">🛡️ Podman (Drive D: Secure)</option>
+            <option value="podman_airgapped">🔒 Podman (D: Air-Gapped)</option>
+            <option value="host">💻 Host Native (C:)</option>
+          </select>
+        </div>
+
+        <!-- Drive D: Free Storage Badge & Modal Trigger -->
+        <button id="openSandboxModalBtn" class="text-xs px-2 py-1.5 rounded-md hover:opacity-80 transition flex items-center gap-1.5 border font-mono" style="background-color: var(--bg-card); border-color: var(--border); color: var(--text-dim);" title="Podman D: Sandbox Health & Canary Runner">
+          <i data-lucide="hard-drive" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span id="driveDFreeText">D: 17.6 GB</span>
+        </button>
+
+        <!-- Layout Lab Button (Zero-Reload In-Page Modal) -->
+        <button id="openLabModalBtn" onclick="openLabModal()" class="text-xs px-2.5 py-1.5 rounded-md hover:opacity-80 transition flex items-center gap-1.5 border" style="background-color: var(--bg-card); border-color: var(--accent); color: var(--accent);" title="Open Layout Lab in zero-reload overlay">
+          <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+          <span>Lab</span>
+        </button>
+
+        <button id="clearChatBtn" class="text-xs px-2.5 py-1.5 rounded-md hover:opacity-80 transition flex items-center gap-1" style="background-color: var(--bg-card); border: 1px solid var(--border); color: var(--text-dim);">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear
+        </button>
+      </div>
+    </header>
+
+    <!-- Session Usage HUD Ribbon -->
+    <div id="sessionUsageHUD" class="border-b px-6 py-2 transition-all text-xs" style="background-color: var(--bg-sidebar); border-color: var(--border);">
+      <div class="max-w-4xl mx-auto flex items-center justify-between gap-4">
+        <!-- Token distribution breakdown chips -->
+        <div class="flex items-center gap-3 flex-wrap">
+          <div class="flex items-center gap-1.5 font-semibold text-[11px]" style="color: var(--accent);">
+            <i data-lucide="gauge" class="w-3.5 h-3.5"></i>
+            <span>Session Compute:</span>
+          </div>
+
+          <!-- Active Sandbox Badge in HUD -->
+          <span id="hudSandboxBadge" class="px-2 py-0.5 rounded text-[11px] font-mono border flex items-center gap-1 text-emerald-400" style="background-color: var(--bg-card); border-color: var(--border);" title="Current active sandbox engine">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="hudSandboxText">D: Secure (Podman)</span>
+          </span>
+
+          <span class="px-2 py-0.5 rounded text-[11px] font-mono border" style="background-color: var(--bg-card); border-color: var(--border); color: var(--text-main);" title="Total accumulated tokens">
+            Total: <strong id="hudTotalTokens">0</strong>
+          </span>
+
+          <span class="px-2 py-0.5 rounded text-[11px] font-mono border" style="background-color: var(--bg-card); border-color: var(--border); color: var(--text-muted);" title="Input prompt tokens">
+            📥 In: <span id="hudInputTokens">0</span>
+          </span>
+
+          <span class="px-2 py-0.5 rounded text-[11px] font-mono border" style="background-color: var(--bg-card); border-color: var(--border); color: var(--text-muted);" title="Thinking / CoT reasoning tokens">
+            🧠 Thinking: <span id="hudThinkingTokens">0</span>
+          </span>
+
+          <span class="px-2 py-0.5 rounded text-[11px] font-mono border" style="background-color: var(--bg-card); border-color: var(--border); color: var(--accent);" title="Generated response tokens">
+            📤 Out: <span id="hudOutputTokens">0</span>
+          </span>
+
+          <span class="px-2 py-0.5 rounded text-[11px] font-mono border" style="background-color: var(--bg-card); border-color: var(--border); color: var(--text-dim);" title="Latest generation speed">
+            ⚡ Speed: <span id="hudSpeed">0.0</span> tok/s
+          </span>
+        </div>
+
+        <!-- Context window progress indicator -->
+        <div class="flex items-center gap-2 min-w-[140px]" title="Context window utilization (1M token window)">
+          <div class="w-24 h-2 rounded-full overflow-hidden" style="background-color: var(--bg-card);">
+            <div id="hudContextBar" class="h-full rounded-full transition-all duration-500" style="width: 1%; background-color: var(--accent);"></div>
+          </div>
+          <span id="hudContextPercent" class="font-mono text-[10px]" style="color: var(--text-dim);">0.1%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Central Canvas Workspace (Supports Standard, Split, Arena, Grid, Dock) -->
+    <div id="canvasWorkspace" class="flex-1 flex overflow-hidden relative">
+      
+      <!-- Left/Main Chat Column -->
+      <div id="chatStreamColumn" class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <!-- Messages Container -->
+        <div id="messagesContainer" class="flex-1 overflow-y-auto p-6 space-y-6">
+          <div id="emptyState" class="h-full flex flex-col items-center justify-center text-center p-8">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-4" style="background-color: var(--bg-card); border: 1px solid var(--border);">
+              🪐
+            </div>
+            <h3 class="text-lg font-bold mb-1">Local Engineering Canvas</h3>
+            <p class="text-xs max-w-md" style="color: var(--text-dim);">
+              Direct query runner backed by your local <code>agy</code> CLI engine. Renders mathematical formulas, architecture flowcharts, and markdown with eye-soothing dark themes.
+            </p>
+          </div>
+        </div>
+
+        <!-- Input Box -->
+        <div class="p-4 border-t" style="border-color: var(--border); background-color: var(--bg-sidebar);">
+          <form id="promptForm" class="max-w-4xl mx-auto flex flex-col gap-2">
+        <div class="relative rounded-xl overflow-hidden border focus-within:ring-1 focus-within:ring-opacity-50" style="border-color: var(--border); background-color: var(--bg-card);">
+          <textarea
+            id="promptInput"
+            rows="3"
+            class="w-full bg-transparent p-3.5 text-sm resize-none outline-none"
+            style="color: var(--text-main);"
+            placeholder="Type your query (e.g. detailed component CapEx formula for 1 GW data center, ERCOT transfer costs)... (Enter to submit, Shift+Enter for newline)"
+          ></textarea>
+
+          <!-- Real-Time Pre-Flight Router & Economics Estimator -->
+          <div id="preflightStrip" class="hidden px-3.5 py-1.5 border-t flex items-center justify-between text-[11px] font-mono transition-all" style="border-color: var(--border); background-color: var(--bg-main);">
+            <div class="flex items-center gap-2 overflow-hidden">
+              <span class="flex items-center gap-1 text-cyan-400 font-semibold flex-shrink-0">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-cyan-400"></i>
+                <span id="preflightModel">Auto-Router</span>
+              </span>
+              <span id="preflightTier" class="px-1.5 py-0.5 rounded text-[10px] bg-cyan-950/40 border border-cyan-800 text-cyan-300 flex-shrink-0">Tier 1</span>
+              <span id="preflightReason" class="text-gray-400 truncate text-[10px]">Evaluating intent...</span>
+            </div>
+            <div class="flex items-center gap-2 text-gray-400 text-[10px] flex-shrink-0">
+              <span>Input: <strong id="preflightTokens" class="text-emerald-400">~0</strong> tok</span>
+              <span>TTFT: <strong id="preflightTTFT" class="text-amber-400">~400ms</strong></span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between px-3 py-2 border-t" style="border-color: var(--border); background-color: var(--bg-sidebar);">
+            <div class="text-[11px] flex items-center gap-2" style="color: var(--text-dim);">
+              <span class="font-mono">Quick:</span>
+              <button type="button" onclick="submitQuickCmd('/models')" class="px-1.5 py-0.5 rounded border hover:text-cyan-300 font-mono transition text-[10px]" style="background-color: var(--bg-card); border-color: var(--border);">/models</button>
+              <button type="button" onclick="submitQuickCmd('/quota')" class="px-1.5 py-0.5 rounded border hover:text-cyan-300 font-mono transition text-[10px]" style="background-color: var(--bg-card); border-color: var(--border);">/quota</button>
+              <button type="button" onclick="submitQuickCmd('/usage')" class="px-1.5 py-0.5 rounded border hover:text-cyan-300 font-mono transition text-[10px]" style="background-color: var(--bg-card); border-color: var(--border);">/usage</button>
+              <button type="button" onclick="openLabModal()" class="px-1.5 py-0.5 rounded border hover:text-cyan-300 font-mono transition text-[10px]" style="background-color: var(--bg-card); border-color: var(--border);">⚡ Layout Lab</button>
+            </div>
+            <button
+              type="submit"
+              id="sendBtn"
+              class="px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
+              style="background-color: var(--accent); color: var(--bg-main);"
+            >
+              <span>Run Query</span>
+              <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+      <!-- Option 1: Split Live Diagram Workspace Pane -->
+      <div id="splitArtifactGutter" class="hidden" title="Drag to adjust split ratio"></div>
+      <div id="splitArtifactPane" class="hidden flex-col h-full overflow-hidden border-l" style="width: 45%; min-width: 320px; background-color: var(--bg-main); border-color: var(--border);">
+        <div class="h-9 px-4 border-b flex items-center justify-between text-xs font-mono font-semibold flex-shrink-0" style="background-color: var(--bg-card-user); border-color: var(--border); color: var(--accent);">
+          <div class="flex items-center gap-2">
+            <i data-lucide="pin" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span id="splitPinnedTitle">Pinned Live Artifact</span>
+          </div>
+          <div class="flex items-center gap-2 text-[11px]">
+            <button onclick="rebuildPinnedDiagram()" class="px-2 py-0.5 rounded border hover:opacity-80 flex items-center gap-1 text-gray-300" style="border-color: var(--border);">
+              <i data-lucide="refresh-cw" class="w-3 h-3"></i> Redraw
+            </button>
+            <button onclick="closeSplitPane()" class="px-1.5 py-0.5 rounded hover:text-red-400 transition" title="Close Split Pane">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+        <div id="splitArtifactContent" class="flex-1 overflow-auto p-6 flex items-center justify-center">
+          <div class="text-xs text-center font-mono text-gray-400 p-6 border rounded-xl" style="border-color: var(--border); background-color: var(--bg-card);">
+            <span>Click any 📌 Pin Diagram button in the chat or run a model query to display live artifacts here.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 3: Fluid Inspector Docking Rail -->
+      <aside id="inspectorDockPane" class="hidden w-80 border-l flex-col transition-all duration-200 flex-shrink-0" style="background-color: var(--bg-sidebar); border-color: var(--border);">
+        <div class="h-9 border-b flex items-center px-2 text-xs flex-shrink-0" style="border-color: var(--border); background-color: var(--bg-card-user);">
+          <button onclick="switchDockTab('diagram')" id="dock-tab-diagram" class="dock-tab-btn px-2.5 py-1.5 text-[11px] font-semibold flex items-center gap-1 transition" style="color: var(--accent);">
+            <i data-lucide="network" class="w-3 h-3"></i> Diagram
+          </button>
+          <button onclick="switchDockTab('telemetry')" id="dock-tab-telemetry" class="dock-tab-btn px-2.5 py-1.5 text-[11px] flex items-center gap-1 transition text-gray-400">
+            <i data-lucide="gauge" class="w-3 h-3"></i> Telemetry
+          </button>
+          <button onclick="switchDockTab('snippets')" id="dock-tab-snippets" class="dock-tab-btn px-2.5 py-1.5 text-[11px] flex items-center gap-1 transition text-gray-400">
+            <i data-lucide="code" class="w-3 h-3"></i> Snippets
+          </button>
+        </div>
+
+        <!-- Inspector Tab 1: Diagram -->
+        <div id="dock-content-diagram" class="flex-1 p-3 overflow-y-auto space-y-3">
+          <div class="text-[11px] font-mono text-cyan-300 font-bold uppercase tracking-wider">Active Canvas Graph</div>
+          <div id="dockMermaidView" class="p-3 rounded-lg border flex justify-center text-xs" style="background-color: var(--bg-card); border-color: var(--border);">
+            <span class="text-gray-400 font-mono text-[10px]">No diagram active</span>
+          </div>
+        </div>
+
+        <!-- Inspector Tab 2: Telemetry -->
+        <div id="dock-content-telemetry" class="hidden flex-1 p-3 overflow-y-auto space-y-3">
+          <div class="text-[11px] font-mono text-cyan-300 font-bold uppercase tracking-wider">Session Metrics</div>
+          <div class="p-3 rounded-lg border space-y-2 text-xs font-mono" style="background-color: var(--bg-card); border-color: var(--border);">
+            <div class="flex justify-between text-gray-400"><span>Tokens:</span> <strong id="dockTokens" class="text-white">0</strong></div>
+            <div class="flex justify-between text-gray-400"><span>Duration:</span> <strong id="dockDuration" class="text-emerald-400">0.0s</strong></div>
+            <div class="flex justify-between text-gray-400"><span>Speed:</span> <strong id="dockSpeed" class="text-cyan-300">0.0 tok/s</strong></div>
+          </div>
+        </div>
+
+        <!-- Inspector Tab 3: Code Snippets -->
+        <div id="dock-content-snippets" class="hidden flex-1 p-3 overflow-y-auto space-y-2">
+          <div class="text-[11px] font-mono text-cyan-300 font-bold uppercase tracking-wider">Extracted Blocks</div>
+          <div id="dockSnippetsList" class="space-y-2 text-xs font-mono">
+            <span class="text-gray-400 text-[10px]">Code blocks will accumulate here</span>
+          </div>
+        </div>
+      </aside>
+
+    </div><!-- End #canvasWorkspace -->
+
+    <!-- Floating Sticky Outline Mini-Map Navigator -->
+    <aside id="outlineMiniMap" class="hidden absolute top-20 right-6 w-64 max-h-[70vh] rounded-xl border shadow-xl flex flex-col backdrop-blur-md z-30 transition-all" style="background-color: var(--bg-card); border-color: var(--border);">
+      <div class="px-3.5 py-2 border-b flex items-center justify-between text-[11px] font-mono select-none" style="border-color: var(--border); color: var(--text-dim);">
+        <span class="flex items-center gap-1.5 font-semibold" style="color: var(--accent);">
+          <i data-lucide="compass" class="w-3.5 h-3.5"></i>
+          <span>Canvas Outline</span>
+        </span>
+        <button onclick="toggleOutlineNavigator()" class="hover:text-red-400 p-0.5 rounded transition" title="Close Outline">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+      <div id="outlineList" class="p-2 space-y-1 overflow-y-auto text-xs font-mono flex-1">
+        <div class="text-[11px] p-2 text-center" style="color: var(--text-dim);">No headings detected yet</div>
+      </div>
+    </aside>
+
+    <!-- Zen Mode Floating Exit Indicator -->
+    <div id="zenExitBanner" class="hidden absolute top-4 right-6 z-40">
+      <button onclick="toggleZenMode()" class="px-3 py-1.5 rounded-lg border text-xs font-mono flex items-center gap-2 shadow-lg backdrop-blur-md hover:opacity-80 transition" style="background-color: var(--bg-card); border-color: var(--border); color: var(--accent);" title="Exit Zen Mode (Esc)">
+        <span>Exit Zen Mode</span>
+        <span class="px-1 py-0.2 rounded text-[10px] bg-black/30 border border-white/10 font-bold">Esc</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- Podman D: Sandbox & Security Modal -->
+  <div id="sandboxModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="w-full max-w-2xl rounded-xl border shadow-2xl p-6 space-y-4" style="background-color: var(--bg-card); border-color: var(--border);">
+      <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--border);">
+        <div class="flex items-center gap-2">
+          <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm">Podman Secure Workspace Hosting (Drive D:)</h3>
+            <p class="text-xs" style="color: var(--text-dim);">Rootless Linux containerization & strict isolation on Drive D:</p>
+          </div>
+        </div>
+        <button id="closeSandboxModalBtn" class="p-1.5 rounded-md hover:opacity-80" style="color: var(--text-dim);">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Specs Grid -->
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div class="p-3 rounded-lg border space-y-1" style="background-color: var(--bg-main); border-color: var(--border);">
+          <p class="text-[10px] font-semibold uppercase" style="color: var(--text-dim);">Podman Engine</p>
+          <p id="modalPodmanVer" class="font-mono font-medium text-emerald-400">Loading...</p>
+          <p id="modalPodmanMachine" class="text-[11px]" style="color: var(--text-muted);">-</p>
+        </div>
+        <div class="p-3 rounded-lg border space-y-1" style="background-color: var(--bg-main); border-color: var(--border);">
+          <p class="text-[10px] font-semibold uppercase" style="color: var(--text-dim);">Drive D: Sandbox Storage</p>
+          <p id="modalDriveDSpace" class="font-mono font-medium text-cyan-400">Loading...</p>
+          <p id="modalDriveDPath" class="text-[10px] truncate font-mono" style="color: var(--text-muted);">D:\agystudio_secure_env</p>
+        </div>
+      </div>
+
+      <!-- Security Hardening Details -->
+      <div class="rounded-lg border p-3 text-xs space-y-2" style="background-color: var(--bg-main); border-color: var(--border);">
+        <p class="font-semibold text-[11px] text-emerald-400 flex items-center gap-1.5">
+          <i data-lucide="lock" class="w-3.5 h-3.5"></i> Active Container Isolation Profile
+        </p>
+        <div class="grid grid-cols-2 gap-2 text-[11px]" style="color: var(--text-muted);">
+          <div class="flex items-center gap-1.5">✅ <span>Read-Only Root Filesystem (<code>--read-only</code>)</span></div>
+          <div class="flex items-center gap-1.5">✅ <span>Ephemeral RAM /tmp (<code>tmpfs 256MB</code>)</span></div>
+          <div class="flex items-center gap-1.5">✅ <span>All Capabilities Dropped (<code>--cap-drop ALL</code>)</span></div>
+          <div class="flex items-center gap-1.5">✅ <span>No Privilege Escalation (<code>no-new-privileges</code>)</span></div>
+          <div class="flex items-center gap-1.5">✅ <span>Storage Quota: Dedicated to <code>D:\...</code></span></div>
+          <div class="flex items-center gap-1.5">✅ <span>Resource Limits: 2GB RAM / 128 PIDs</span></div>
+        </div>
+      </div>
+
+      <!-- Canary Test Action & Output -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold" style="color: var(--text-main);">Live Canary & Healthcheck</span>
+          <button id="runCanaryBtn" class="text-xs px-3 py-1.5 rounded-md font-medium transition flex items-center gap-1.5" style="background-color: var(--accent); color: var(--bg-main);">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i> Run Live Canary
+          </button>
+        </div>
+        <pre id="canaryOutputBox" class="text-[11px] font-mono p-3 rounded-lg border overflow-x-auto max-h-32 text-gray-400" style="background-color: var(--bg-main); border-color: var(--border);">Click 'Run Live Canary' to probe Podman container execution on Drive D: in real-time.</pre>
+      </div>
+
+      <!-- Interactive Mini Code Runner -->
+      <div class="space-y-2 border-t pt-3" style="border-color: var(--border);">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold" style="color: var(--text-main);">Quick Sandboxed Exec</span>
+            <select id="quickExecLang" class="text-[11px] rounded px-2 py-0.5" style="background-color: var(--bg-main); border: 1px solid var(--border); color: var(--text-main);">
+              <option value="python">Python 3.11</option>
+              <option value="sh">Alpine Shell</option>
+            </select>
+          </div>
+          <button id="runQuickExecBtn" class="text-xs px-2.5 py-1 rounded hover:opacity-80 transition flex items-center gap-1 border" style="background-color: var(--bg-main); border-color: var(--border); color: var(--text-main);">
+            <i data-lucide="terminal" class="w-3 h-3 text-emerald-400"></i> Exec in D:
+          </button>
+        </div>
+        <textarea id="quickExecCode" class="w-full text-[11px] font-mono p-2 rounded border outline-none resize-none h-14" style="background-color: var(--bg-main); border-color: var(--border); color: var(--text-main);">import sys, os; print("Isolated on D:", os.getcwd(), "PID:", os.getpid())</textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zero-Reload Layout Lab Interactive Drawer Modal -->
+  <div id="layoutLabModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="w-full max-w-5xl h-[85vh] rounded-2xl border shadow-2xl flex flex-col overflow-hidden" style="background-color: var(--bg-sidebar); border-color: var(--border);">
+      <div class="h-14 px-6 border-b flex items-center justify-between flex-shrink-0" style="background-color: var(--bg-card); border-color: var(--border);">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base" style="background-color: var(--accent); color: var(--bg-main);">
+            ⚡
+          </div>
+          <div>
+            <h3 class="font-bold text-sm">Layout Lab & Prototypes (Zero-Reload)</h3>
+            <p class="text-xs" style="color: var(--text-dim);">Switch between wide-screen multi-pane views without reloading the page</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="closeLabModal()" class="p-1.5 rounded-lg border hover:opacity-80 transition flex items-center gap-1 text-xs" style="background-color: var(--bg-main); border-color: var(--border); color: var(--text-main);">
+            <i data-lucide="x" class="w-4 h-4"></i> Close
+          </button>
+        </div>
+      </div>
+      <div class="flex-1 p-6 overflow-y-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Option 1: Split Live Diagram -->
+          <div onclick="applyCanvasModeFromLab('split')" class="cursor-pointer rounded-xl border p-5 transition hover:border-cyan-400 hover:scale-[1.01]" style="background-color: var(--bg-main); border-color: var(--border);">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-mono font-bold uppercase" style="color: var(--accent);">Option 1</span>
+              <span class="text-[11px] px-2 py-0.5 rounded font-mono" style="background-color: var(--bg-card); color: var(--accent);">Side-by-Side</span>
+            </div>
+            <h4 class="font-bold text-sm mb-1">Dual-Pane Split Canvas</h4>
+            <p class="text-xs text-gray-400 mb-3">Live chat on the left, draggable pinned diagram/artifact viewport on the right.</p>
+            <button class="w-full py-1.5 rounded text-xs font-semibold" style="background-color: var(--accent); color: var(--bg-main);">Activate Split View (Instant)</button>
+          </div>
+
+          <!-- Option 2: Model Arena -->
+          <div onclick="applyCanvasModeFromLab('arena')" class="cursor-pointer rounded-xl border p-5 transition hover:border-cyan-400 hover:scale-[1.01]" style="background-color: var(--bg-main); border-color: var(--border);">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-mono font-bold uppercase" style="color: var(--accent);">Option 2</span>
+              <span class="text-[11px] px-2 py-0.5 rounded font-mono" style="background-color: var(--bg-card); color: var(--accent);">Dual Column</span>
+            </div>
+            <h4 class="font-bold text-sm mb-1">Model Arena & Parallel Compare</h4>
+            <p class="text-xs text-gray-400 mb-3">Side-by-side dual column view comparing models and generation streams.</p>
+            <button class="w-full py-1.5 rounded text-xs font-semibold" style="background-color: var(--accent); color: var(--bg-main);">Activate Arena View (Instant)</button>
+          </div>
+
+          <!-- Option 3: Inspector Dock -->
+          <div onclick="applyCanvasModeFromLab('dock')" class="cursor-pointer rounded-xl border p-5 transition hover:border-cyan-400 hover:scale-[1.01]" style="background-color: var(--bg-main); border-color: var(--border);">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-mono font-bold uppercase" style="color: var(--accent);">Option 3</span>
+              <span class="text-[11px] px-2 py-0.5 rounded font-mono" style="background-color: var(--bg-card); color: var(--accent);">Right Dock</span>
+            </div>
+            <h4 class="font-bold text-sm mb-1">Fluid Inspector Docking Rail</h4>
+            <p class="text-xs text-gray-400 mb-3">Permanent right utility dock with live graph, real-time telemetry, and code drawer.</p>
+            <button class="w-full py-1.5 rounded text-xs font-semibold" style="background-color: var(--accent); color: var(--bg-main);">Activate Dock View (Instant)</button>
+          </div>
+
+          <!-- Option 4: Masonry Grid -->
+          <div onclick="applyCanvasModeFromLab('grid')" class="cursor-pointer rounded-xl border p-5 transition hover:border-cyan-400 hover:scale-[1.01]" style="background-color: var(--bg-main); border-color: var(--border);">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-mono font-bold uppercase" style="color: var(--accent);">Option 4</span>
+              <span class="text-[11px] px-2 py-0.5 rounded font-mono" style="background-color: var(--bg-card); color: var(--accent);">Multi-Tile</span>
+            </div>
+            <h4 class="font-bold text-sm mb-1">Masonry Canvas Dashboard Grid</h4>
+            <p class="text-xs text-gray-400 mb-3">Multi-column masonry grid tiling prompts and diagrams across ultra-wide monitors.</p>
+            <button class="w-full py-1.5 rounded text-xs font-semibold" style="background-color: var(--accent); color: var(--bg-main);">Activate Grid View (Instant)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Mermaid
+    function applyTheme(themeName) {
+      document.documentElement.setAttribute('data-theme', themeName);
+      localStorage.setItem('agystudio_theme', themeName);
+      const themeSelectEl = document.getElementById('themeSelect');
+      if (themeSelectEl) themeSelectEl.value = themeName;
+
+      // Update Quick Day/Night Icon
+      const dayNightIcon = document.getElementById('quickDayNightIcon');
+      if (dayNightIcon) {
+        if (themeName === 'milk') {
+          dayNightIcon.setAttribute('data-lucide', 'moon');
+          dayNightIcon.classList.remove('text-amber-500');
+          dayNightIcon.classList.add('text-indigo-400');
+        } else {
+          dayNightIcon.setAttribute('data-lucide', 'sun-medium');
+          dayNightIcon.classList.remove('text-indigo-400');
+          dayNightIcon.classList.add('text-amber-500');
+        }
+        if (window.lucide) lucide.createIcons();
+      }
+
+      // Re-initialize Mermaid configuration according to theme
+      if (typeof mermaid !== 'undefined') {
+        try {
+          const isMilk = themeName === 'milk';
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: isMilk ? 'default' : 'dark',
+            themeVariables: isMilk ? {
+              darkMode: false,
+              background: '#FFFFFF',
+              primaryColor: '#F2EFE9',
+              primaryTextColor: '#23272F',
+              primaryBorderColor: '#DDD6C9',
+              lineColor: '#2762B8',
+              secondaryColor: '#ECE6DC',
+              tertiaryColor: '#FAF8F5'
+            } : {
+              darkMode: true,
+              background: '#1e222a',
+              primaryColor: '#88c0d0',
+              primaryTextColor: '#eceff4',
+              primaryBorderColor: '#434c5e',
+              lineColor: '#88c0d0',
+              secondaryColor: '#3b4252',
+              tertiaryColor: '#2e3440'
+            }
+          });
+        } catch (e) {
+          console.warn('Mermaid initialize failed:', e);
+        }
+      }
+    }
+
+    let currentSessionId = null;
+    let sessions = [];
+
+    // Theme Switcher & Quick Day/Night Toggle
+    const themeSelect = document.getElementById('themeSelect');
+    const savedTheme = localStorage.getItem('agystudio_theme') || 'nord';
+    applyTheme(savedTheme);
+
+    if (themeSelect) {
+      themeSelect.addEventListener('change', (e) => applyTheme(e.target.value));
+    }
+
+    const quickDayNightBtn = document.getElementById('quickDayNightBtn');
+    if (quickDayNightBtn) {
+      quickDayNightBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'nord';
+        if (currentTheme === 'milk') {
+          const lastDark = localStorage.getItem('agystudio_last_dark_theme') || 'nord';
+          applyTheme(lastDark);
+        } else {
+          localStorage.setItem('agystudio_last_dark_theme', currentTheme);
+          applyTheme('milk');
+        }
+      });
+    }
+
+    // Helper: Configure marked
+    if (typeof marked !== 'undefined' && marked.setOptions) {
+      marked.setOptions({
+        gfm: true,
+        breaks: true
+      });
+    }
+
+    async function loadSessions() {
+      try {
+        const res = await fetch('/api/sessions');
+        sessions = await res.json();
+        renderSessionList();
+        if (sessions.length > 0 && !currentSessionId) {
+          selectSession(sessions[0].id);
+        } else if (sessions.length === 0) {
+          await createNewSession();
+        }
+      } catch (err) {
+        console.error('Failed to load sessions:', err);
+      }
+    }
+
+    function renderSessionList() {
+      const container = document.getElementById('sessionList');
+      container.innerHTML = '';
+      sessions.forEach(s => {
+        const isActive = s.id === currentSessionId;
+        const div = document.createElement('div');
+        div.className = `session-item group flex items-center justify-between px-2.5 py-2 rounded-lg cursor-pointer text-xs transition ${
+          isActive ? 'font-semibold' : 'hover:opacity-80'
+        }`;
+        div.style.backgroundColor = isActive ? 'var(--bg-card-user)' : 'transparent';
+        div.style.color = isActive ? 'var(--accent)' : 'var(--text-muted)';
+
+        div.innerHTML = `
+          <div class="flex items-center gap-2 truncate flex-1" onclick="selectSession('${s.id}')">
+            <i data-lucide="message-square" class="w-3.5 h-3.5 flex-shrink-0"></i>
+            <span class="truncate">${s.title}</span>
+          </div>
+          <button onclick="deleteSession(event, '${s.id}')" class="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition" title="Delete">
+            <i data-lucide="trash" class="w-3 h-3"></i>
+          </button>
+        `;
+        container.appendChild(div);
+      });
+      lucide.createIcons();
+    }
+
+    async function createNewSession(initialTitle = "New Modeling Session") {
+      try {
+        const res = await fetch('/api/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: initialTitle })
+        });
+        if (res.ok) {
+          const newSess = await res.json();
+          sessions.unshift(newSess);
+          currentSessionId = newSess.id;
+          renderSessionList();
+          document.getElementById('currentSessionTitle').textContent = newSess.title;
+          updateTelemetryBadge(newSess);
+          renderMessages([]);
+          return newSess;
+        }
+      } catch (err) {
+        console.error('createNewSession error:', err);
+      }
+      const fallbackId = 'sess_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+      currentSessionId = fallbackId;
+      return { id: fallbackId, title: initialTitle };
+    }
+
+    async function updateTelemetryBadge(session) {
+      const pill = document.getElementById('sessionDetailsPill');
+      const hud = document.getElementById('sessionUsageHUD');
+
+      if (!session || (!session.agy_conv_id && !session.total_tokens)) {
+        pill.classList.add('hidden');
+        pill.classList.remove('flex');
+        // Reset HUD to 0 instead of hiding it
+        document.getElementById('hudTotalTokens').textContent = '0';
+        document.getElementById('hudInputTokens').textContent = '0';
+        document.getElementById('hudThinkingTokens').textContent = '0';
+        document.getElementById('hudOutputTokens').textContent = '0';
+        document.getElementById('hudSpeed').textContent = '0.0';
+        document.getElementById('hudContextBar').style.width = '0.1%';
+        document.getElementById('hudContextPercent').textContent = '0.0%';
+        return;
+      }
+      pill.classList.remove('hidden');
+      pill.classList.add('flex');
+      
+      const convIdEl = document.getElementById('telemetryConvId');
+      const durationEl = document.getElementById('telemetryDuration');
+      const tokensEl = document.getElementById('telemetryTokens');
+
+      const shortId = session.agy_conv_id ? (session.agy_conv_id.slice(0, 8) + '...') : 'local';
+      convIdEl.textContent = shortId;
+      convIdEl.title = session.agy_conv_id || '';
+      durationEl.textContent = `${(session.last_duration || 0).toFixed(1)}s`;
+      tokensEl.textContent = `${session.total_tokens || 0} tok`;
+
+      // Update HUD elements
+      const hudTotal = document.getElementById('hudTotalTokens');
+      const hudIn = document.getElementById('hudInputTokens');
+      const hudThink = document.getElementById('hudThinkingTokens');
+      const hudOut = document.getElementById('hudOutputTokens');
+      const hudSpeed = document.getElementById('hudSpeed');
+      const hudBar = document.getElementById('hudContextBar');
+      const hudPercent = document.getElementById('hudContextPercent');
+
+      const totalTok = session.total_tokens || 0;
+      const inTok = session.input_tokens || 0;
+      const thinkTok = session.thinking_tokens || 0;
+      const outTok = session.output_tokens || 0;
+      const dur = session.last_duration || 0;
+
+      hudTotal.textContent = totalTok.toLocaleString();
+      hudIn.textContent = inTok.toLocaleString();
+      hudThink.textContent = thinkTok.toLocaleString();
+      hudOut.textContent = outTok.toLocaleString();
+
+      const speed = dur > 0 && outTok > 0 ? (outTok / dur).toFixed(1) : '0.0';
+      hudSpeed.textContent = speed;
+
+      // 1M context window fill percentage
+      const contextWindow = 1000000;
+      const pct = Math.min(100, Math.max(0.1, (totalTok / contextWindow) * 100));
+      hudBar.style.width = `${pct.toFixed(2)}%`;
+      hudPercent.textContent = `${pct.toFixed(2)}%`;
+
+      // Also sync dock telemetry if present
+      const dockTok = document.getElementById('dockTokens');
+      const dockDur = document.getElementById('dockDuration');
+      const dockSpd = document.getElementById('dockSpeed');
+      if (dockTok) dockTok.textContent = totalTok.toLocaleString();
+      if (dockDur) dockDur.textContent = `${dur.toFixed(1)}s`;
+      if (dockSpd) dockSpd.textContent = `${speed} tok/s`;
+
+      lucide.createIcons();
+    }
+
+    let selectSessionCounter = 0;
+
+    async function selectSession(sessionId) {
+      const callId = ++selectSessionCounter;
+      currentSessionId = sessionId;
+      renderSessionList();
+      const current = sessions.find(s => s.id === sessionId);
+      document.getElementById('currentSessionTitle').textContent = current ? current.title : "Active Session";
+      updateTelemetryBadge(current);
+
+      // Fetch messages
+      const res = await fetch(`/api/sessions/${sessionId}/messages`);
+      const messages = await res.json();
+      if (callId !== selectSessionCounter) return;
+      if (isSubmitting && currentSessionId === sessionId) return;
+      renderMessages(messages);
+    }
+
+    async function deleteSession(event, sessionId) {
+      event.stopPropagation();
+      if (!confirm("Are you sure you want to delete this session?")) return;
+      await fetch(`/api/sessions/${sessionId}`, { method: 'DELETE' });
+      sessions = sessions.filter(s => s.id !== sessionId);
+      if (currentSessionId === sessionId) {
+        currentSessionId = sessions.length > 0 ? sessions[0].id : null;
+      }
+      if (!currentSessionId) {
+        await createNewSession();
+      } else {
+        selectSession(currentSessionId);
+      }
+    }
+
+    function renderMessages(messages) {
+      const container = document.getElementById('messagesContainer');
+      let emptyState = document.getElementById('emptyState');
+      if (messages.length === 0) {
+        if (!emptyState) {
+          container.innerHTML = `
+            <div id="emptyState" class="h-full flex flex-col items-center justify-center text-center p-8">
+              <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-4" style="background-color: var(--bg-card); border: 1px solid var(--border);">🪐</div>
+              <h3 class="text-lg font-bold mb-1">Local Engineering Canvas</h3>
+              <p class="text-xs max-w-md" style="color: var(--text-dim);">
+                Direct query runner backed by your local <code>agy</code> CLI engine. Renders mathematical formulas, architecture flowcharts, and markdown with eye-soothing dark themes.
+              </p>
+            </div>`;
+        } else {
+          container.innerHTML = '';
+          emptyState.classList.remove('hidden');
+          container.appendChild(emptyState);
+        }
+        return;
+      }
+      container.innerHTML = '';
+      messages.forEach(m => {
+        appendMessageUI(m.role, m.content, m.id, m);
+      });
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function appendMessageUI(role, content, msgId = null, meta = null) {
+      const container = document.getElementById('messagesContainer');
+      const isUser = role === 'user';
+      const msgWrapper = document.createElement('div');
+      msgWrapper.className = `flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-4xl mx-auto w-full`;
+      if (msgId) msgWrapper.id = `msg-${msgId}`;
+
+      const card = document.createElement('div');
+      card.className = `rounded-xl p-4 text-sm leading-relaxed border relative group ${
+        isUser ? 'max-w-xl' : 'w-full'
+      }`;
+      card.style.backgroundColor = isUser ? 'var(--bg-card-user)' : 'var(--bg-card)';
+      card.style.borderColor = 'var(--border)';
+
+      if (isUser) {
+        card.textContent = content;
+      } else {
+        card.className += " prose-content";
+        card.innerHTML = formatMarkdownAndDiagrams(content);
+        // Render math and mermaid
+        setTimeout(() => {
+          if (typeof renderMathInElement !== 'undefined') {
+            renderMathInElement(card, {
+              delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+              ],
+              throwOnError: false
+            });
+          }
+          renderMermaidDiagrams(card);
+        }, 10);
+
+        // Per-Message Inspector Badge
+        if (meta && (meta.duration || meta.tokens_info)) {
+          const tok = meta.tokens_info ? (meta.tokens_info.total_tokens || 0) : 0;
+          const dur = meta.duration ? meta.duration.toFixed(1) : '0.0';
+          const outTok = meta.tokens_info ? (meta.tokens_info.output_tokens || 0) : 0;
+          const spd = meta.duration && outTok ? (outTok / meta.duration).toFixed(1) : null;
+
+          const footer = document.createElement('div');
+          footer.className = "mt-3 pt-2 border-t flex items-center gap-3 text-[10px] font-mono select-none";
+          footer.style.borderColor = "var(--border)";
+          footer.style.color = "var(--text-dim)";
+          footer.innerHTML = `
+            <span>⏱ ${dur}s</span>
+            <span>•</span>
+            <span>⚡ ${tok.toLocaleString()} tok</span>
+            ${spd ? `<span>•</span><span>🚀 ${spd} tok/s</span>` : ''}
+            ${meta.agy_conv_id ? `<span>•</span><span title="${meta.agy_conv_id}">CID: ${meta.agy_conv_id.slice(0, 8)}...</span>` : ''}
+          `;
+          card.appendChild(footer);
+        }
+      }
+
+      msgWrapper.appendChild(card);
+      container.appendChild(msgWrapper);
+      container.scrollTop = container.scrollHeight;
+      return card;
+    }
+
+    function formatMarkdownAndDiagrams(raw) {
+      let contentToParse = raw;
+      let headerBannerHtml = '';
+
+      // Check if first line is execution header stamp: agent:model:effort:datetimestart:datetimefinish:tokensused
+      const lines = raw.split('\n');
+      const firstLine = lines[0].trim();
+      const headerRegex = /^([a-zA-Z0-9_\-\.]+):([a-zA-Z0-9_\-\.]+):([a-zA-Z0-9_\-\.]+):(\d{4}-\d{2}-\d{2}T[\d:]+Z):(\d{4}-\d{2}-\d{2}T[\d:]+Z):(\d+)$/;
+      const match = firstLine.match(headerRegex);
+
+      if (match) {
+        const [_, agent, model, effort, dtStart, dtFinish, tokens] = match;
+        headerBannerHtml = `
+          <div class="execution-stamp mb-3 pb-2 border-b flex flex-wrap items-center gap-2 font-mono text-[11px] select-all cursor-pointer" 
+               style="border-color: var(--border); color: var(--accent);" 
+               title="Click to copy execution stamp"
+               onclick="navigator.clipboard.writeText('${firstLine}')">
+            <span class="px-1.5 py-0.5 rounded bg-black/20 border" style="border-color: var(--border);">🤖 ${agent}</span>
+            <span class="px-1.5 py-0.5 rounded bg-black/20 border" style="border-color: var(--border);">🧠 ${model}</span>
+            <span class="px-1.5 py-0.5 rounded bg-black/20 border" style="border-color: var(--border);">⚙️ ${effort}</span>
+            <span class="px-1.5 py-0.5 rounded bg-black/20 border" style="border-color: var(--border);">⏳ ${dtStart} → ${dtFinish}</span>
+            <span class="px-1.5 py-0.5 rounded bg-black/20 border font-semibold" style="border-color: var(--border);">⚡ ${Number(tokens).toLocaleString()} tok</span>
+          </div>
+        `;
+        // Remove first line from markdown parsing so it's not rendered as plain text
+        contentToParse = lines.slice(1).join('\n').trimStart();
+      }
+
+      // Parse markdown
+      let html = marked.parse(contentToParse);
+      // Transform ```mermaid blocks into interactive validated containers
+      let diagramCounter = 0;
+      html = html.replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g, (match, code) => {
+        diagramCounter++;
+        const diagId = `mermaid-diag-${Date.now()}-${diagramCounter}`;
+        const decoded = code.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+        const healed = autoHealMermaidSyntax(decoded);
+
+        return `
+          <div class="mermaid-block my-4 rounded-xl border overflow-hidden shadow-sm" id="${diagId}" style="background-color: var(--bg-card); border-color: var(--border);">
+            <div class="flex items-center justify-between px-3.5 py-2 border-b text-[11px] font-mono select-none" style="background-color: var(--bg-sidebar); border-color: var(--border); color: var(--text-dim);">
+              <span class="flex items-center gap-2 font-semibold" style="color: var(--accent);">
+                <span>📊</span>
+                <span>Mermaid Architecture Diagram</span>
+              </span>
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="pinDiagramToWorkspace('${diagId}')" class="px-2 py-0.5 rounded hover:bg-black/20 border transition flex items-center gap-1 text-amber-300" style="border-color: var(--border);" title="Pin Diagram to Right Split Pane">
+                  <span>📌</span>
+                  <span>Pin</span>
+                </button>
+                <button type="button" onclick="rebuildMermaidDiagram('${diagId}')" class="px-2 py-0.5 rounded hover:bg-black/20 border transition flex items-center gap-1" style="border-color: var(--border);" title="Rebuild / Re-render Diagram">
+                  <span>🔄</span>
+                  <span>Rebuild</span>
+                </button>
+                <button type="button" onclick="toggleDiagramSource('${diagId}')" class="px-2 py-0.5 rounded hover:bg-black/20 border transition" style="border-color: var(--border);" title="Toggle Raw Mermaid Source">
+                  <span class="toggle-label">Code</span>
+                </button>
+                <button type="button" onclick="copyDiagramCode('${diagId}')" class="px-2 py-0.5 rounded hover:bg-black/20 border transition" style="border-color: var(--border);" title="Copy Mermaid Syntax">
+                  Copy
+                </button>
+              </div>
+            </div>
+            <div class="diagram-render-view p-4 overflow-x-auto flex justify-center min-h-[140px] transition-all">
+              <div class="mermaid w-full flex justify-center" data-raw-code="${encodeURIComponent(decoded)}" data-healed-code="${encodeURIComponent(healed)}">${healed}</div>
+            </div>
+            <div class="diagram-source-view hidden p-3 text-xs font-mono border-t overflow-x-auto" style="background-color: #14171d; border-color: var(--border); color: var(--text-main);">
+              <pre><code>${escapeHtml(healed)}</code></pre>
+            </div>
+          </div>
+        `;
+      });
+      return headerBannerHtml + html;
+    }
+
+    // Common LLM Mermaid syntax self-healer engine
+    function autoHealMermaidSyntax(raw) {
+      let text = raw.trim();
+
+      // 1. Fix unquoted square bracket labels containing parentheses: e.g. [Step (A)] -> ["Step (A)"]
+      text = text.replace(/\[([^"\]\n]*?\([^\)\n]*?\)[^"\]\n]*?)\]/g, (match, inner) => {
+        if (inner.startsWith('"') && inner.endsWith('"')) return match;
+        return `["${inner}"]`;
+      });
+
+      // 2. Fix unquoted square bracket labels containing curly braces: e.g. [Data {set}] -> ["Data {set}"]
+      text = text.replace(/\[([^"\]\n]*?\{[^\}\n]*?\}[^"\]\n]*?)\]/g, (match, inner) => {
+        if (inner.startsWith('"') && inner.endsWith('"')) return match;
+        return `["${inner}"]`;
+      });
+
+      // 3. Fix unescaped ampersands inside node text (leave entity codes intact)
+      text = text.replace(/&(?!(amp|lt|gt|quot|#39);)/g, '&amp;');
+
+      // 4. Remove stray unsupported HTML tags that break SVG parsing (leave <br> intact)
+      text = text.replace(/<(?!\/?(br|b|i|strong|em)\b)[^>]+>/gi, '');
+
+      return text;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+    }
+
+    function toggleDiagramSource(blockId) {
+      const block = document.getElementById(blockId);
+      if (!block) return;
+      const renderView = block.querySelector('.diagram-render-view');
+      const sourceView = block.querySelector('.diagram-source-view');
+      const toggleLabel = block.querySelector('.toggle-label');
+
+      if (sourceView.classList.contains('hidden')) {
+        sourceView.classList.remove('hidden');
+        renderView.classList.add('hidden');
+        if (toggleLabel) toggleLabel.textContent = 'Diagram';
+      } else {
+        sourceView.classList.add('hidden');
+        renderView.classList.remove('hidden');
+        if (toggleLabel) toggleLabel.textContent = 'Code';
+      }
+    }
+
+    function copyDiagramCode(blockId) {
+      const block = document.getElementById(blockId);
+      if (!block) return;
+      const codeEl = block.querySelector('.diagram-source-view code');
+      if (codeEl) {
+        navigator.clipboard.writeText(codeEl.textContent);
+      }
+    }
+
+    async function rebuildMermaidDiagram(blockId) {
+      const block = document.getElementById(blockId);
+      if (!block) return;
+      const renderView = block.querySelector('.diagram-render-view');
+      const rawCode = decodeURIComponent(block.querySelector('.mermaid')?.getAttribute('data-raw-code') || '');
+      const healedCode = autoHealMermaidSyntax(rawCode);
+
+      // Recreate pristine node container
+      renderView.innerHTML = `<div class="mermaid w-full flex justify-center" data-raw-code="${encodeURIComponent(rawCode)}" data-healed-code="${encodeURIComponent(healedCode)}">${healedCode}</div>`;
+      await renderMermaidDiagrams(renderView);
+    }
+
+    async function renderMermaidDiagrams(element) {
+      if (typeof mermaid === 'undefined') return;
+      const mermaids = element.querySelectorAll('.mermaid:not([data-processed="true"])');
+      for (const node of mermaids) {
+        const code = node.textContent;
+        try {
+          // Pre-validation with mermaid.parse
+          const isValid = await mermaid.parse(code);
+          if (isValid) {
+            await mermaid.run({ nodes: [node] });
+          }
+        } catch (err) {
+          console.warn('Mermaid validation failed, displaying diagnostics sandbox:', err);
+          const rawCode = decodeURIComponent(node.getAttribute('data-raw-code') || '');
+          node.parentElement.innerHTML = `
+            <div class="w-full text-xs font-mono p-3 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-200">
+              <div class="font-bold flex items-center justify-between gap-1.5 mb-1.5">
+                <span class="flex items-center gap-1.5"><span>⚠️</span><span>Diagram Syntax Notice: Auto-healing applied. Raw fallback available.</span></span>
+                <button onclick="rebuildMermaidDiagram('${node.closest('.mermaid-block')?.id}')" class="px-2 py-0.5 rounded text-[10px] bg-amber-500/20 border border-amber-500/30 hover:bg-amber-500/40 transition">Retry Rebuild</button>
+              </div>
+              <p class="text-[11px] opacity-80 mb-2">${escapeHtml(err.message || 'Syntax parse issue')}</p>
+              <pre class="p-2 rounded bg-black/40 text-[10px] overflow-x-auto text-amber-100"><code>${escapeHtml(rawCode || code)}</code></pre>
+            </div>
+          `;
+        }
+      }
+    }
+
+    let isSubmitting = false;
+
+    // Prompt Form Submit Handler
+    async function handlePromptSubmit(e) {
+      if (e && e.preventDefault) {
+        e.preventDefault();
+      }
+      if (isSubmitting) return;
+
+      const input = document.getElementById('promptInput');
+      const prompt = input.value.trim();
+      if (!prompt) return;
+
+      isSubmitting = true;
+      const sendBtn = document.getElementById('sendBtn');
+      if (sendBtn) sendBtn.disabled = true;
+
+      if (!currentSessionId) {
+        await createNewSession();
+      }
+      const activeSessionId = currentSessionId || ('sess_' + Math.random().toString(36).substring(2, 11));
+      currentSessionId = activeSessionId;
+
+      // Hide empty state
+      const emptyState = document.getElementById('emptyState');
+      if (emptyState) {
+        emptyState.classList.add('hidden');
+      }
+
+      // Add user message to UI
+      appendMessageUI('user', prompt);
+      input.value = '';
+
+      // Hide preflight strip
+      const preflight = document.getElementById('preflightStrip');
+      if (preflight) preflight.classList.add('hidden');
+
+      // Prepare assistant response card
+      const liveBadge = document.getElementById('liveStatusBadge');
+      liveBadge.classList.remove('hidden');
+      liveBadge.classList.add('flex');
+
+      const effort = document.getElementById('effortSelect').value;
+      const model = document.getElementById('modelSelect').value || null;
+      const thinkingBudget = document.getElementById('thinkingBudgetSelect')?.value ? parseInt(document.getElementById('thinkingBudgetSelect').value) : null;
+      const sandboxMode = document.getElementById('sandboxModeSelect')?.value || 'podman_secure_d';
+      const responseCard = appendMessageUI('assistant', '*Analyzing value chain & running calculations...*');
+
+      let accumulated = '';
+
+      try {
+        const response = await fetch('/api/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: activeSessionId,
+            prompt: prompt,
+            model: model,
+            effort: effort,
+            thinking_budget: thinkingBudget,
+            sandbox_mode: sandboxMode
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`HTTP ${response.status} (${response.statusText}): ${errText || 'Server error'}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n\n');
+          buffer = lines.pop(); // keep partial chunk
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = JSON.parse(line.slice(6));
+              if (data.chunk) {
+                if (accumulated === '') {
+                  accumulated = data.chunk;
+                } else {
+                  accumulated += data.chunk;
+                }
+                responseCard.innerHTML = formatMarkdownAndDiagrams(accumulated);
+                if (typeof renderMathInElement !== 'undefined') {
+                  renderMathInElement(responseCard, {
+                    delimiters: [
+                      {left: '$$', right: '$$', display: true},
+                      {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                  });
+                }
+              }
+              if (data.done) {
+                renderMermaidDiagrams(responseCard);
+                if (data.header_stamp && accumulated) {
+                  // Re-render message card with the prepended header stamp
+                  responseCard.innerHTML = formatMarkdownAndDiagrams(data.header_stamp + '\n\n' + accumulated);
+                  if (typeof renderMathInElement !== 'undefined') {
+                    renderMathInElement(responseCard, {
+                      delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                      ],
+                      throwOnError: false
+                    });
+                  }
+                  renderMermaidDiagrams(responseCard);
+                }
+                if (data.agy_conv_id || data.duration) {
+                  updateTelemetryBadge({
+                    agy_conv_id: data.agy_conv_id,
+                    last_duration: data.duration,
+                    total_tokens: data.total_tokens,
+                    input_tokens: data.input_tokens,
+                    output_tokens: data.output_tokens,
+                    thinking_tokens: data.thinking_tokens
+                  });
+
+                  // Add footer badge to the active message card
+                  const spd = data.duration && data.output_tokens ? (data.output_tokens / data.duration).toFixed(1) : null;
+                  const footer = document.createElement('div');
+                  footer.className = "mt-3 pt-2 border-t flex items-center gap-3 text-[10px] font-mono select-none";
+                  footer.style.borderColor = "var(--border)";
+                  footer.style.color = "var(--text-dim)";
+                  footer.innerHTML = `
+                    <span>⏱ ${(data.duration || 0).toFixed(1)}s</span>
+                    <span>•</span>
+                    <span>⚡ ${(data.total_tokens || 0).toLocaleString()} tok</span>
+                    ${data.routing_reason ? `<span>•</span><span class="text-cyan-300 font-semibold" title="${data.routing_reason}">🎯 ${data.resolved_model || 'auto'}</span>` : ''}
+                    ${spd ? `<span>•</span><span>🚀 ${spd} tok/s</span>` : ''}
+                    ${data.sandbox_mode && data.sandbox_mode.startsWith('podman') ? `<span>•</span><span class="text-emerald-400" title="Workspace: ${data.workspace_path || 'Drive D:'}">🛡️ Podman D:</span>` : ''}
+                    ${data.agy_conv_id ? `<span>•</span><span title="${data.agy_conv_id}">CID: ${data.agy_conv_id.slice(0, 8)}...</span>` : ''}
+                  `;
+                  responseCard.appendChild(footer);
+                }
+              }
+            }
+          }
+        }
+        renderMermaidDiagrams(responseCard);
+        await loadSessions(); // refresh titles and session metadata
+      } catch (err) {
+        let helpText = '';
+        if (err.message && (err.message.includes('fetch') || err.message.includes('NetworkError') || err.message.includes('Failed to fetch'))) {
+          helpText = `<div class="mt-2 text-xs text-stone-400">💡 Hint: Verify that the AgyStudio backend server is running on <code class="text-amber-400">http://127.0.0.1:8130</code> or check your browser console for details.</div>`;
+        }
+        responseCard.innerHTML = `
+          <div class="p-3 rounded-lg border border-red-500/30 bg-red-950/20 text-red-300">
+            <div class="font-semibold text-xs flex items-center gap-1.5 mb-1">
+              <span>⚠️ Connection Error:</span> <span>${err.message}</span>
+            </div>
+            ${helpText}
+          </div>
+        `;
+      } finally {
+        isSubmitting = false;
+        const sendBtn = document.getElementById('sendBtn');
+        if (sendBtn) sendBtn.disabled = false;
+        liveBadge.classList.add('hidden');
+        liveBadge.classList.remove('flex');
+      }
+    }
+
+    document.getElementById('promptForm').addEventListener('submit', handlePromptSubmit);
+
+    // Enter to submit, Shift+Enter for newline
+    document.getElementById('promptInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handlePromptSubmit();
+      }
+    });
+
+    document.getElementById('newSessionBtn').addEventListener('click', () => createNewSession());
+    document.getElementById('clearChatBtn').addEventListener('click', async () => {
+      if (!currentSessionId) return;
+      if (confirm('Clear messages in this session?')) {
+        await fetch(`/api/sessions/${currentSessionId}`, { method: 'DELETE' });
+        await createNewSession();
+      }
+    });
+
+    const PRESET_PROMPTS = {
+      datacenter: "Perform an exhaustive techno-economic analysis and cost chain breakdown for a 1 GW AI hyperscale data center campus in Texas (ERCOT). Detail CapEx and transfer costs across 5 stages: (1) 345 kV Grid Interconnection & Substations, (2) Core Shell & Civil, (3) High-Density Liquid Cooling & Power (CDUs, UPS, BESS), (4) IT Accelerators & InfiniBand Fabric, and (5) Operational Logistics. Provide the complete project CapEx formula in KaTeX ($$) and a detailed Mermaid process flowchart.",
+      
+      macro_inflation: "Model the macroeconomic dynamics between inflation expectations, the New Keynesian Phillips Curve, and the equilibrium real interest rate (r*). Formulate the monetary policy Taylor Rule with output gap adjustments. Provide: (1) System of structural macroeconomic equations in KaTeX, (2) Transmission mechanism sensitivity analysis, and (3) A Mermaid flowchart showing central bank policy rate propagation to debt and employment markets.",
+      
+      dcf_lbo: "Build a rigorous Leveraged Buyout (LBO) and Discounted Cash Flow (DCF) valuation model for a $5B enterprise value tech infrastructure asset. Break down: (1) Debt tranche structuring (Senior Secured, Mezzanine, Sponsor Equity), (2) Free Cash Flow to Firm (FCFF) and WACC calculation in KaTeX, (3) Debt paydown waterfall over a 5-year holding period, and (4) Returns sensitivity matrix (Entry/Exit multiples vs. Sponsor MoIC and IRR) with a Mermaid capital flow diagram.",
+      
+      ercot_4cp: "Develop a quantitative financial model for a 200 MW / 800 MWh Battery Energy Storage System (BESS) co-located with an industrial load in ERCOT. Calculate annual transmission cost avoidance via 4CP (Four Coincident Peaks) peak-shaving versus wholesale nodal arbitrage and ancillary services (ECRS, RRS). Provide KaTeX formulas for net present value (NPV) and return on investment (ROI).",
+      
+      hohmann_orbit: "Compute the orbital mechanics and trajectory optimization for an Earth-to-Mars Hohmann transfer orbit followed by Mars aerodynamic capture. Provide: (1) Vis-Viva equation derivations for $\\Delta v_1$ (departure) and $\\Delta v_2$ (arrival) in KaTeX, (2) Synodic period and launch window recurrence equations, (3) Total mission $\\Delta v$ budget table, and (4) A Mermaid diagram tracing heliocentric trajectory milestones.",
+      
+      black_hole: "Derive the mathematical physics of a rotating Kerr black hole. Detail: (1) The Kerr metric in Boyer-Lindquist coordinates with KaTeX formulas for event horizon radii ($r_+$ and $r_-$) and static limit ergosurface ($r_E$), (2) The Penrose process and Blandford-Znajek relativistic jet energy extraction mechanism, and (3) A Mermaid diagram visualizing ergosphere geometry and frame dragging.",
+      
+      distributed_consensus: "Architect an ultra-high resilience distributed consensus and replication engine combining Raft with Byzantine Fault Tolerance (BFT) for zero-trust financial ledgers. Break down: (1) Leader election and log replication invariants, (2) Quorum consensus math in KaTeX ($$Q = \\lfloor n/2 \\rfloor + 1$$ vs. $$3f + 1$$), (3) Network partition split-brain mitigation, and (4) A sequence-style Mermaid diagram illustrating commit guarantees across distributed nodes.",
+      
+      event_driven: "Design a mission-critical Event-Driven Architecture (EDA) with CQRS and Event Sourcing handling 500,000 events/sec with sub-millisecond p99 latency. Detail: (1) Event mesh partitioning and outbox pattern implementation, (2) Formal data consistency and deduplication math in KaTeX, and (3) A comprehensive Mermaid architecture diagram spanning edge ingestion, Kafka/Redpanda log streams, and projection read models."
+    };
+
+    function submitQuickCmd(cmd) {
+      const input = document.getElementById('promptInput');
+      input.value = cmd;
+      handlePromptSubmit();
+    }
+
+    function loadTemplate(type) {
+      const input = document.getElementById('promptInput');
+      if (PRESET_PROMPTS[type]) {
+        input.value = PRESET_PROMPTS[type];
+      }
+      input.focus();
+    }
+
+    async function loadSystemInfo() {
+      try {
+        const res = await fetch('/api/system/info');
+        const data = await res.json();
+        
+        // Update Google/Gmail account and OS user badges
+        if (data.gmail_user) {
+          const gmailBadge = document.getElementById('gmailUserBadge');
+          gmailBadge.textContent = data.gmail_user;
+          gmailBadge.title = `Authenticated Google Account: ${data.gmail_user} (Installation: ${data.installation_id || 'active'})`;
+        } else if (data.user) {
+          document.getElementById('gmailUserBadge').textContent = data.user;
+        }
+
+        if (data.user) {
+          const osBadge = document.getElementById('osUserBadge');
+          if (osBadge) osBadge.textContent = `os: ${data.user}`;
+        }
+
+        // Populate models dropdown
+        const modelSelect = document.getElementById('modelSelect');
+        if (data.models && modelSelect.options.length <= 1) {
+          modelSelect.innerHTML = '';
+          data.models.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.textContent = m.name;
+            if (m.id === 'auto-router') {
+              opt.selected = true;
+            }
+            modelSelect.appendChild(opt);
+          });
+        }
+      } catch (err) {
+        console.warn('Could not fetch system info:', err);
+      }
+    }
+
+    // ==========================================
+    // Collapsible Sidebar, Zen Mode & Sticky Outline Mini-Map
+    // ==========================================
+    const sidebar = document.getElementById('mainSidebar');
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    const toggleZenBtn = document.getElementById('toggleZenBtn');
+    const zenBtnText = document.getElementById('zenBtnText');
+    const zenExitBanner = document.getElementById('zenExitBanner');
+    const outlineMiniMap = document.getElementById('outlineMiniMap');
+    const toggleOutlineBtn = document.getElementById('toggleOutlineBtn');
+    const outlineList = document.getElementById('outlineList');
+
+    function toggleSidebar() {
+      sidebar.classList.toggle('sidebar-collapsed');
+      const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
+      localStorage.setItem('agystudio_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+    }
+
+    if (localStorage.getItem('agystudio_sidebar_collapsed') === 'true') {
+      sidebar.classList.add('sidebar-collapsed');
+    }
+
+    if (toggleSidebarBtn) {
+      toggleSidebarBtn.addEventListener('click', toggleSidebar);
+    }
+
+    function toggleZenMode() {
+      document.body.classList.toggle('zen-mode');
+      const isZen = document.body.classList.contains('zen-mode');
+      
+      if (isZen) {
+        if (!sidebar.classList.contains('sidebar-collapsed')) {
+          sidebar.classList.add('sidebar-collapsed');
+        }
+        zenExitBanner.classList.remove('hidden');
+        if (zenBtnText) zenBtnText.textContent = 'Exit Zen';
+      } else {
+        if (localStorage.getItem('agystudio_sidebar_collapsed') !== 'true') {
+          sidebar.classList.remove('sidebar-collapsed');
+        }
+        zenExitBanner.classList.add('hidden');
+        if (zenBtnText) zenBtnText.textContent = 'Zen';
+      }
+    }
+
+    if (toggleZenBtn) {
+      toggleZenBtn.addEventListener('click', toggleZenMode);
+    }
+
+    function toggleOutlineNavigator() {
+      outlineMiniMap.classList.toggle('hidden');
+      if (!outlineMiniMap.classList.contains('hidden')) {
+        updateOutlineMiniMap();
+      }
+    }
+
+    if (toggleOutlineBtn) {
+      toggleOutlineBtn.addEventListener('click', toggleOutlineNavigator);
+    }
+
+    function updateOutlineMiniMap() {
+      const container = document.getElementById('messagesContainer');
+      const headings = container.querySelectorAll('.prose-content h1, .prose-content h2, .prose-content h3, .prose-content h4, .mermaid-block');
+      outlineList.innerHTML = '';
+
+      if (headings.length === 0) {
+        outlineList.innerHTML = `<div class="text-[11px] p-2 text-center" style="color: var(--text-dim);">No headings or diagrams found in current view</div>`;
+        return;
+      }
+
+      headings.forEach((el, index) => {
+        if (!el.id) {
+          el.id = `section-anchor-${index}`;
+        }
+        const item = document.createElement('div');
+        item.className = 'outline-item px-2 py-1 rounded cursor-pointer truncate text-[11px] flex items-center gap-1.5';
+        
+        let icon = '•';
+        let label = el.textContent.trim();
+        let indent = '';
+
+        if (el.classList.contains('mermaid-block')) {
+          icon = '📊';
+          label = 'Architecture Diagram';
+        } else if (el.tagName === 'H1') {
+          icon = '📌';
+        } else if (el.tagName === 'H2') {
+          icon = '🔹';
+          indent = 'pl-2';
+        } else if (el.tagName === 'H3') {
+          icon = '🔸';
+          indent = 'pl-4';
+        }
+
+        item.className += ` ${indent}`;
+        item.innerHTML = `<span>${icon}</span><span class="truncate">${label}</span>`;
+        item.title = label;
+        item.onclick = () => {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+        outlineList.appendChild(item);
+      });
+    }
+
+    // Layout Mode Switcher (Safe / Test All Modes)
+    const canvasModeSelect = document.getElementById('canvasModeSelect');
+    const splitPane = document.getElementById('splitArtifactPane');
+    const splitGutter = document.getElementById('splitArtifactGutter');
+    const inspectorPane = document.getElementById('inspectorDockPane');
+
+    function applyCanvasMode(mode) {
+      document.body.classList.remove('canvas-mode-grid', 'canvas-mode-arena', 'canvas-mode-split', 'canvas-mode-dock');
+      
+      // Reset panes
+      if (splitPane) splitPane.classList.add('hidden');
+      if (splitGutter) splitGutter.classList.add('hidden');
+      if (inspectorPane) inspectorPane.classList.add('hidden');
+
+      if (mode === 'grid') {
+        document.body.classList.add('canvas-mode-grid');
+      } else if (mode === 'arena') {
+        document.body.classList.add('canvas-mode-arena');
+      } else if (mode === 'split') {
+        document.body.classList.add('canvas-mode-split');
+        if (splitPane) splitPane.classList.remove('hidden');
+        if (splitGutter) splitGutter.classList.remove('hidden');
+      } else if (mode === 'dock') {
+        document.body.classList.add('canvas-mode-dock');
+        if (inspectorPane) inspectorPane.classList.remove('hidden');
+      }
+      localStorage.setItem('agystudio_canvas_mode', mode);
+      lucide.createIcons();
+    }
+
+    if (canvasModeSelect) {
+      canvasModeSelect.addEventListener('change', (e) => {
+        applyCanvasMode(e.target.value);
+      });
+      // Restore saved preference or default to standard
+      const savedMode = localStorage.getItem('agystudio_canvas_mode') || 'standard';
+      canvasModeSelect.value = savedMode;
+      applyCanvasMode(savedMode);
+    }
+
+    function openLabModal() {
+      const modal = document.getElementById('layoutLabModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeLabModal() {
+      const modal = document.getElementById('layoutLabModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function applyCanvasModeFromLab(mode) {
+      if (canvasModeSelect) canvasModeSelect.value = mode;
+      applyCanvasMode(mode);
+      closeLabModal();
+    }
+
+    function closeSplitPane() {
+      if (canvasModeSelect) canvasModeSelect.value = 'standard';
+      applyCanvasMode('standard');
+    }
+
+    // Real-Time Pre-Flight Model Routing & Economics Estimator
+    let preflightTimeout = null;
+    const promptInputEl = document.getElementById('promptInput');
+    if (promptInputEl) {
+      promptInputEl.addEventListener('input', () => {
+        clearTimeout(preflightTimeout);
+        const text = promptInputEl.value.trim();
+        const preflight = document.getElementById('preflightStrip');
+        if (!text) {
+          if (preflight) preflight.classList.add('hidden');
+          return;
+        }
+        preflightTimeout = setTimeout(async () => {
+          try {
+            const currentModel = document.getElementById('modelSelect')?.value || 'auto-router';
+            const currentEffort = document.getElementById('effortSelect')?.value || 'low';
+            const res = await fetch('/api/router/preview', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ prompt: text, model: currentModel, effort: currentEffort })
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (preflight) {
+              preflight.classList.remove('hidden');
+              document.getElementById('preflightModel').textContent = '⚡ ' + data.resolved_model;
+              document.getElementById('preflightTier').textContent = data.tier;
+              document.getElementById('preflightReason').textContent = data.reason;
+              document.getElementById('preflightTokens').textContent = '~' + data.estimated_tokens;
+              document.getElementById('preflightTTFT').textContent = '~' + data.expected_ttft_ms + 'ms';
+            }
+          } catch (e) {
+            console.debug('Preflight router preview failed', e);
+          }
+        }, 200);
+      });
+    }
+
+    // Split Pane Gutter Dragging
+    if (splitGutter && splitPane) {
+      let isDraggingGutter = false;
+      splitGutter.addEventListener('mousedown', (e) => {
+        isDraggingGutter = true;
+        splitGutter.classList.add('dragging');
+        document.body.style.userSelect = 'none';
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDraggingGutter) return;
+        const workspace = document.getElementById('canvasWorkspace');
+        const rect = workspace.getBoundingClientRect();
+        const offset = rect.right - e.clientX;
+        const percentage = (offset / rect.width) * 100;
+        if (percentage >= 20 && percentage <= 75) {
+          splitPane.style.width = `${percentage}%`;
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDraggingGutter) {
+          isDraggingGutter = false;
+          splitGutter.classList.remove('dragging');
+          document.body.style.userSelect = '';
+        }
+      });
+    }
+
+    function closeSplitPane() {
+      if (canvasModeSelect) canvasModeSelect.value = 'standard';
+      applyCanvasMode('standard');
+    }
+
+    let pinnedDiagramCode = '';
+    function pinDiagramToWorkspace(blockId) {
+      const block = document.getElementById(blockId);
+      if (!block) return;
+      const mermaidEl = block.querySelector('.mermaid');
+      pinnedDiagramCode = decodeURIComponent(mermaidEl?.getAttribute('data-raw-code') || mermaidEl?.textContent || '');
+      const healed = autoHealMermaidSyntax(pinnedDiagramCode);
+
+      // Open split pane
+      if (canvasModeSelect) canvasModeSelect.value = 'split';
+      applyCanvasMode('split');
+
+      const splitTarget = document.getElementById('splitArtifactContent');
+      if (splitTarget) {
+        splitTarget.innerHTML = `
+          <div class="w-full flex flex-col items-center p-4 bg-[#242933] rounded-xl border" style="border-color: var(--border);">
+            <div class="mermaid w-full flex justify-center" data-raw-code="${encodeURIComponent(pinnedDiagramCode)}">${healed}</div>
+          </div>
+        `;
+        renderMermaidDiagrams(splitTarget);
+      }
+
+      // Also update dock diagram
+      const dockMermaid = document.getElementById('dockMermaidView');
+      if (dockMermaid) {
+        dockMermaid.innerHTML = `<div class="mermaid w-full flex justify-center">${healed}</div>`;
+        renderMermaidDiagrams(dockMermaid);
+      }
+    }
+
+    function rebuildPinnedDiagram() {
+      if (!pinnedDiagramCode) return;
+      const splitTarget = document.getElementById('splitArtifactContent');
+      if (splitTarget) {
+        const healed = autoHealMermaidSyntax(pinnedDiagramCode);
+        splitTarget.innerHTML = `
+          <div class="w-full flex flex-col items-center p-4 bg-[#242933] rounded-xl border" style="border-color: var(--border);">
+            <div class="mermaid w-full flex justify-center" data-raw-code="${encodeURIComponent(pinnedDiagramCode)}">${healed}</div>
+          </div>
+        `;
+        renderMermaidDiagrams(splitTarget);
+      }
+    }
+
+    // Inspector Dock Tab Switching
+    function switchDockTab(tab) {
+      ['diagram', 'telemetry', 'snippets'].forEach(t => {
+        const content = document.getElementById(`dock-content-${t}`);
+        const btn = document.getElementById(`dock-tab-${t}`);
+        if (content) content.classList.add('hidden');
+        if (btn) {
+          btn.style.color = 'var(--text-dim)';
+          btn.classList.remove('font-semibold');
+        }
+      });
+      const activeContent = document.getElementById(`dock-content-${tab}`);
+      const activeBtn = document.getElementById(`dock-tab-${tab}`);
+      if (activeContent) activeContent.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.style.color = 'var(--accent)';
+        activeBtn.classList.add('font-semibold');
+      }
+    }
+
+    // Keyboard Shortcuts: Ctrl+B (Toggle Sidebar), Esc (Exit Zen)
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        toggleSidebar();
+      }
+      if (e.key === 'Escape' && document.body.classList.contains('zen-mode')) {
+        toggleZenMode();
+      }
+    });
+
+    // ==========================================
+    // Podman Secure Workspace Hosting (Drive D:)
+    // ==========================================
+    let sandboxStatusData = null;
+
+    async function loadSandboxStatus() {
+      try {
+        const res = await fetch('/api/sandbox/status');
+        const data = await res.json();
+        sandboxStatusData = data;
+
+        const text = document.getElementById('driveDFreeText');
+        if (data.drive_d && data.drive_d.free_gb) {
+          if (text) text.textContent = `D: ${data.drive_d.free_gb} GB`;
+        }
+
+        // Update modal info
+        const modalVer = document.getElementById('modalPodmanVer');
+        const modalMachine = document.getElementById('modalPodmanMachine');
+        const modalDrive = document.getElementById('modalDriveDSpace');
+        const modalPath = document.getElementById('modalDriveDPath');
+        if (modalVer) modalVer.textContent = data.podman_version || 'Not Detected';
+        if (modalMachine) modalMachine.textContent = `WSL: ${data.podman_machine || 'None'}`;
+        if (modalDrive && data.drive_d) modalDrive.textContent = `${data.drive_d.free_gb} GB Free / ${data.drive_d.total_gb} GB Total`;
+        if (modalPath && data.drive_d) modalPath.textContent = data.drive_d.path;
+
+        // Restore saved preference
+        const savedMode = localStorage.getItem('agystudio_sandbox_mode');
+        const select = document.getElementById('sandboxModeSelect');
+        if (select) {
+          if (savedMode) select.value = savedMode;
+          updateSandboxShieldIcon(select.value);
+        }
+      } catch (e) {
+        console.warn('Could not load sandbox status:', e);
+      }
+    }
+
+    function updateSandboxShieldIcon(mode) {
+      const icon = document.getElementById('sandboxShieldIcon');
+      const hudBadge = document.getElementById('hudSandboxBadge');
+      const hudText = document.getElementById('hudSandboxText');
+      if (!icon) return;
+
+      icon.classList.remove('text-emerald-400', 'text-amber-400', 'text-slate-400');
+      if (mode === 'podman_secure_d') {
+        icon.classList.add('text-emerald-400');
+        if (hudText) hudText.textContent = 'D: Secure (Podman)';
+        if (hudBadge) {
+          hudBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono border flex items-center gap-1 text-emerald-400';
+        }
+      } else if (mode === 'podman_airgapped') {
+        icon.classList.add('text-amber-400');
+        if (hudText) hudText.textContent = 'D: Air-Gapped (Podman)';
+        if (hudBadge) {
+          hudBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono border flex items-center gap-1 text-amber-400';
+        }
+      } else {
+        icon.classList.add('text-slate-400');
+        if (hudText) hudText.textContent = 'Host Native (C:)';
+        if (hudBadge) {
+          hudBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono border flex items-center gap-1 text-slate-400';
+        }
+      }
+    }
+
+    const sandboxSelect = document.getElementById('sandboxModeSelect');
+    if (sandboxSelect) {
+      sandboxSelect.addEventListener('change', (e) => {
+        localStorage.setItem('agystudio_sandbox_mode', e.target.value);
+        updateSandboxShieldIcon(e.target.value);
+      });
+    }
+
+    // Modal open / close
+    const sandboxModal = document.getElementById('sandboxModal');
+    const openSandboxBtn = document.getElementById('openSandboxModalBtn');
+    const closeSandboxBtn = document.getElementById('closeSandboxModalBtn');
+
+    if (openSandboxBtn && sandboxModal) {
+      openSandboxBtn.addEventListener('click', () => {
+        loadSandboxStatus();
+        sandboxModal.classList.remove('hidden');
+        lucide.createIcons();
+      });
+    }
+    if (closeSandboxBtn && sandboxModal) {
+      closeSandboxBtn.addEventListener('click', () => {
+        sandboxModal.classList.add('hidden');
+      });
+    }
+
+    // Canary Button
+    const runCanaryBtn = document.getElementById('runCanaryBtn');
+    const canaryOutputBox = document.getElementById('canaryOutputBox');
+    if (runCanaryBtn && canaryOutputBox) {
+      runCanaryBtn.addEventListener('click', async () => {
+        canaryOutputBox.textContent = 'Launching isolated Podman canary container on Drive D:...';
+        try {
+          const res = await fetch('/api/sandbox/test', { method: 'POST' });
+          const data = await res.json();
+          if (data.success) {
+            canaryOutputBox.textContent = `[SUCCESS - ${data.duration_ms}ms]\n` +
+              `Workspace: ${data.workspace_mount}\n` +
+              `Output:\n${data.output}`;
+          } else {
+            canaryOutputBox.textContent = `[FAILED]\nError: ${data.error || data.stderr}`;
+          }
+        } catch (err) {
+          canaryOutputBox.textContent = `[NETWORK ERROR]\n${err.message}`;
+        }
+      });
+    }
+
+    // Quick Exec Button
+    const runQuickExecBtn = document.getElementById('runQuickExecBtn');
+    if (runQuickExecBtn) {
+      runQuickExecBtn.addEventListener('click', async () => {
+        const code = document.getElementById('quickExecCode').value;
+        const lang = document.getElementById('quickExecLang').value;
+        const outBox = document.getElementById('canaryOutputBox');
+        outBox.textContent = `Executing ${lang} in Podman sandbox on Drive D:...`;
+        try {
+          const res = await fetch('/api/sandbox/exec', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: currentSessionId || 'default',
+              code: code,
+              language: lang,
+              airgapped: sandboxSelect?.value === 'podman_airgapped'
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            outBox.textContent = `[EXEC SUCCESS - ${data.duration_ms}ms | Exit: ${data.returncode}]\n` +
+              `Workspace: ${data.workspace}\n` +
+              `Output:\n${data.output || '(No stdout)'}` +
+              (data.stderr ? `\nStderr:\n${data.stderr}` : '');
+          } else {
+            outBox.textContent = `[EXEC FAILED]\n${data.error || data.stderr}`;
+          }
+        } catch (e) {
+          outBox.textContent = `[ERROR]\n${e.message}`;
+        }
+      });
+    }
+
+    // Init
+    loadSystemInfo();
+    loadSandboxStatus();
+    loadSessions();
+    lucide.createIcons();
+  </script>
+</body>
+</html>

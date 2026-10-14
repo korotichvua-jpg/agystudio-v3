@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 3: Fluid Inspector Docking Rail - AgyStudio</title>
+  <script src="/vendor/tailwindcss.js"></script>
+  <script src="/vendor/lucide.min.js"></script>
+  <script src="/vendor/mermaid.min.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap">
+  <style>
+    :root {
+      --bg-main: #2e3440;
+      --bg-sidebar: #242933;
+      --bg-card: #3b4252;
+      --bg-card-user: #434c5e;
+      --border: #4c566a;
+      --accent: #88c0d0;
+      --text-main: #eceff4;
+      --text-dim: #d8dee9;
+      --text-muted: #e5e9f0;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+    }
+    .tab-btn.active {
+      border-bottom: 2px solid var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+  <!-- Top Navigation -->
+  <header class="h-14 border-b flex items-center justify-between px-6 flex-shrink-0" style="background-color: var(--bg-sidebar); border-color: var(--border);">
+    <div class="flex items-center gap-3">
+      <a href="/options.html" class="p-1.5 rounded-lg border hover:opacity-80 transition text-xs flex items-center gap-1.5" style="background-color: var(--bg-card); border-color: var(--border); color: var(--text-dim);">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> All Options
+      </a>
+      <div class="h-4 w-px bg-gray-600"></div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs px-2 py-0.5 rounded font-mono font-bold" style="background-color: var(--bg-card); color: var(--accent);">OPTION 3</span>
+        <h1 class="font-bold text-sm">Fluid Inspector Docking Rail</h1>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="toggleDockBtn" onclick="toggleInspector()" class="px-3 py-1.5 rounded-md text-xs font-semibold border hover:opacity-80 transition flex items-center gap-1.5" style="background-color: var(--bg-card); border-color: var(--border); color: var(--accent);">
+        <i data-lucide="panel-right" class="w-3.5 h-3.5"></i> Toggle Inspector Dock
+      </button>
+      <button onclick="alert('Option 3 Selected! Let the assistant know in chat.')" class="px-3 py-1.5 rounded-md text-xs font-semibold hover:opacity-90 transition flex items-center gap-1.5 shadow" style="background-color: var(--accent); color: var(--bg-main);">
+        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Vote Option 3
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Multi-Track Body -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- Left Chat Area (Comfortable Wide Flow) -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <div class="flex-1 overflow-y-auto p-6 space-y-4 max-w-4xl mx-auto w-full">
+        <!-- Message bubble -->
+        <div class="p-4 rounded-xl border space-y-3 text-xs leading-relaxed" style="background-color: var(--bg-card); border-color: var(--border);">
+          <div class="flex items-center justify-between font-mono text-[11px] border-b pb-2" style="border-color: var(--border);">
+            <span class="text-cyan-400 font-bold">Query Turn: Microservice Mesh & Database Clustering</span>
+            <span class="text-gray-400">Model: Claude 3.7 Sonnet</span>
+          </div>
+          <p>The system components have been established. Notice how your right inspector dock automatically captures the active diagram, real-time token telemetry metrics, and extracted python code snippets without cluttering this reading column.</p>
+          <div class="p-3 rounded-lg border font-mono text-[11px]" style="background-color: var(--bg-sidebar); border-color: var(--border);">
+            # Ingress Routing Rule<br>
+            apiVersion: networking.k8s.io/v1<br>
+            kind: Ingress<br>
+            metadata:<br>
+            &nbsp;&nbsp;name: agy-mesh-gateway
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick input prompt -->
+      <div class="p-4 border-t flex gap-2 max-w-4xl mx-auto w-full" style="border-color: var(--border);">
+        <input type="text" placeholder="Type prompt or query..." class="flex-1 text-xs rounded px-3 py-2 border outline-none font-mono" style="background-color: var(--bg-card); border-color: var(--border); color: var(--text-main);">
+        <button class="px-4 py-2 rounded text-xs font-semibold" style="background-color: var(--accent); color: var(--bg-main);">Send</button>
+      </div>
+    </div>
+
+    <!-- Right Utility Docking Rail (Inspector) -->
+    <aside id="inspectorDock" class="w-96 border-l flex flex-col transition-all duration-200" style="background-color: var(--bg-sidebar); border-color: var(--border);">
+      <!-- Inspector Tabs -->
+      <div class="h-10 border-b flex items-center px-2 text-xs" style="border-color: var(--border); background-color: var(--bg-card-user);">
+        <button onclick="switchTab('diagram')" id="tab-diagram" class="tab-btn active px-3 py-2 text-xs flex items-center gap-1.5 transition">
+          <i data-lucide="network" class="w-3.5 h-3.5"></i> Diagram
+        </button>
+        <button onclick="switchTab('telemetry')" id="tab-telemetry" class="tab-btn px-3 py-2 text-xs flex items-center gap-1.5 transition text-gray-400">
+          <i data-lucide="gauge" class="w-3.5 h-3.5"></i> Telemetry
+        </button>
+        <button onclick="switchTab('snippets')" id="tab-snippets" class="tab-btn px-3 py-2 text-xs flex items-center gap-1.5 transition text-gray-400">
+          <i data-lucide="code" class="w-3.5 h-3.5"></i> Snippets
+        </button>
+      </div>
+
+      <!-- Tab Content 1: Diagram Canvas -->
+      <div id="content-diagram" class="flex-1 p-4 overflow-y-auto space-y-3">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold text-[11px] text-cyan-300 uppercase tracking-wider">Active Graph</span>
+          <span class="text-[10px] text-gray-400">Live Rendered</span>
+        </div>
+        <div id="inspectorMermaid" class="p-3 rounded-lg border flex justify-center bg-[#2e3440]" style="border-color: var(--border);">
+          <div class="mermaid">
+graph TD
+  Gateway["API Gateway"] --> Auth["Auth Service"]
+  Gateway --> Engine["Agy Engine"]
+  Engine --> Redis[("Redis Cache")]
+          </div>
+        </div>
+        <div class="flex gap-2 text-xs">
+          <button class="flex-1 py-1 rounded border text-center font-mono text-[11px] hover:bg-black/20">Full Zoom</button>
+          <button class="flex-1 py-1 rounded border text-center font-mono text-[11px] hover:bg-black/20 text-cyan-300">Export PNG</button>
+        </div>
+      </div>
+
+      <!-- Tab Content 2: Telemetry -->
+      <div id="content-telemetry" class="hidden flex-1 p-4 overflow-y-auto space-y-4">
+        <div class="text-xs font-bold text-cyan-300 uppercase tracking-wider">Session Token Consumption</div>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="p-3 rounded-lg border text-center" style="background-color: var(--bg-card); border-color: var(--border);">
+            <div class="text-[10px] text-gray-400">Total Tokens</div>
+            <div class="text-lg font-bold text-cyan-300 font-mono">1,482</div>
+          </div>
+          <div class="p-3 rounded-lg border text-center" style="background-color: var(--bg-card); border-color: var(--border);">
+            <div class="text-[10px] text-gray-400">Avg Latency</div>
+            <div class="text-lg font-bold text-emerald-400 font-mono">3.4s</div>
+          </div>
+        </div>
+        <div class="p-3 rounded-lg border text-xs space-y-2" style="background-color: var(--bg-card); border-color: var(--border);">
+          <div class="flex justify-between">
+            <span class="text-gray-400">Input Tokens:</span>
+            <span class="font-mono">820</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-400">Output Tokens:</span>
+            <span class="font-mono">512</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-400">Thinking Tokens:</span>
+            <span class="font-mono text-purple-300">150</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content 3: Extracted Snippets -->
+      <div id="content-snippets" class="hidden flex-1 p-4 overflow-y-auto space-y-3">
+        <div class="text-xs font-bold text-cyan-300 uppercase tracking-wider">Extracted Code Blocks</div>
+        <div class="p-3 rounded-lg border text-xs space-y-2" style="background-color: var(--bg-card); border-color: var(--border);">
+          <div class="flex items-center justify-between text-[11px] font-mono text-gray-400">
+            <span>ingress.yaml</span>
+            <button class="text-cyan-300 hover:underline">Copy</button>
+          </div>
+          <pre class="font-mono text-[10px] p-2 rounded bg-[#242933] overflow-x-auto">apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: agy-mesh-gateway</pre>
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+
+    function switchTab(tabId) {
+      ['diagram', 'telemetry', 'snippets'].forEach(t => {
+        document.getElementById(`content-${t}`).classList.add('hidden');
+        document.getElementById(`tab-${t}`).classList.remove('active', 'text-cyan-400');
+        document.getElementById(`tab-${t}`).classList.add('text-gray-400');
+      });
+      document.getElementById(`content-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+      document.getElementById(`tab-${tabId}`).classList.remove('text-gray-400');
+    }
+
+    let dockOpen = true;
+    function toggleInspector() {
+      const dock = document.getElementById('inspectorDock');
+      dockOpen = !dockOpen;
+      if (dockOpen) {
+        dock.style.display = 'flex';
+      } else {
+        dock.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>
