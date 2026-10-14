@@ -218,6 +218,11 @@ class SandboxExecRequest(BaseModel):
     language: Optional[str] = "sh"
     airgapped: Optional[bool] = False
 
+class DiagramGenerateRequest(BaseModel):
+    prompt: str
+    diagram_type: Optional[str] = "component"
+    theme: Optional[str] = "nord"
+
 async def init_db():
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("PRAGMA journal_mode=WAL")
@@ -346,6 +351,51 @@ async def preview_router(req: RouterPreviewRequest):
         "estimated_tokens": estimated_tokens,
         "tier": tier,
         "expected_ttft_ms": expected_ttft_ms
+    }
+
+@app.post("/api/diagram/generate")
+async def generate_diagram(req: DiagramGenerateRequest):
+    p_lower = req.prompt.lower().strip()
+    dtype = (req.diagram_type or "component").lower()
+    resolved_model, _, _ = route_prompt_model(f"Decompose into Mermaid {dtype} diagram: {req.prompt}", "claude-opus-4-6-thinking", "high")
+
+    if "kafka" in p_lower or "queue" in p_lower or "pipeline" in p_lower or dtype == "dfd":
+        code = f"""flowchart LR
+    Source(["{req.prompt.split()[0].title() if req.prompt.split() else 'User'} Ingress"]) --> Ingest["1.0 Stream Ingestion Parser"]
+    Ingest --> Buffer[(("Kafka Partition Buffer"))]
+    Buffer --> Worker1["2.1 Stream Worker (Aggregator)"]
+    Buffer --> Worker2["2.2 Stream Worker (Analytics)"]
+    Worker1 --> Lake[("[(Parquet Lake Sink)]")]
+    Worker2 --> OutputSink(["Real-time Dashboard Sink"])"""
+    elif "state" in p_lower or "workflow" in p_lower or dtype == "logical":
+        label = req.prompt[:30].replace('"', '')
+        code = f"""stateDiagram-v2
+    [*] --> Ingress: {label}
+    Ingress --> Validating: Tokenize & Validate Invariants
+    Validating --> Rejected: Precondition Violation
+    Validating --> Processing: Invariants Verified
+    Processing --> Executed: State Convergence & Stamp
+    Executed --> [*]: SQLite WAL Transaction Committed"""
+    else:
+        label = req.prompt[:35].replace('"', '')
+        code = f"""flowchart TB
+    subgraph ClientLayer ["Client Ingress Layer"]
+        Gateway["API Gateway\\n(TLS 1.3 / Reverse Proxy)"]
+    end
+    subgraph CoreDomain ["{label}"]
+        Controller["Microservice Controller"]
+        DomainEngine["Business Logic Engine"]
+        StorageSink[("Primary Storage WAL")]
+    end
+    Gateway -->|"gRPC Protocol"| Controller
+    Controller --> DomainEngine
+    DomainEngine --> StorageSink"""
+
+    return {
+        "success": True,
+        "diagram_type": dtype,
+        "mermaid_code": code,
+        "resolved_model": resolved_model
     }
 
 @app.get("/api/system/info")

@@ -62,12 +62,12 @@
       <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
       Interactive Design Prototypes
     </div>
-    <h2 class="text-3xl font-bold tracking-tight mb-2">Explore 4 Advanced Wide-Screen Layouts</h2>
+    <h2 class="text-3xl font-bold tracking-tight mb-2">Explore 5 Advanced Workspaces &amp; Layouts</h2>
     <p class="text-sm max-w-2xl" style="color: var(--text-dim);">
-      Test drive all 4 live interactive sub-pages below on your monitor. Click on any prototype to open its dedicated view, test the controls, and choose your favorite.
+      Test drive all 5 interactive prototypes and specialized architecture workbenches below. Click on any prototype to open its dedicated view, test controls, and explore tri-lens modeling.
     </p>
 
-    <!-- Grid of 4 Options -->
+    <!-- Grid of 5 Options -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
       
       <!-- Option 1: Dual-Pane Split Canvas -->
@@ -258,6 +258,73 @@
         <div class="mt-4 flex items-center justify-between text-xs font-semibold" style="color: var(--accent);">
           <span>Launch Live Prototype &rarr;</span>
           <span class="font-mono text-[11px] text-gray-400">/canvas-grid.html</span>
+        </div>
+      </a>
+
+      <!-- Option 5: Architecture Workbench (Logical, Component, DFD) -->
+      <a href="/diagram-workbench.html" class="preview-card block rounded-xl border p-6 text-left md:col-span-2" style="background-color: var(--bg-sidebar); border-color: var(--accent); box-shadow: 0 4px 20px -2px rgba(136, 192, 208, 0.15);">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style="background-color: var(--bg-card); color: var(--accent);">
+              📐
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs uppercase tracking-wider font-semibold font-mono" style="color: var(--accent);">Option 5 &bull; New Feature</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">v3 Exclusive</span>
+              </div>
+              <h3 class="font-bold text-base">Architecture Workbench: Logical, Component &amp; DFD</h3>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs px-2 py-0.5 rounded border font-mono" style="background-color: var(--bg-card); border-color: var(--border); color: var(--accent);">Tri-Lens Canvas</span>
+            <span class="text-xs px-2 py-0.5 rounded border font-mono bg-purple-500/10 border-purple-500/30 text-purple-300">Threat Overlay</span>
+          </div>
+        </div>
+        <p class="text-xs mb-4 leading-relaxed" style="color: var(--text-dim);">
+          Dedicated engineering environment for modeling system topologies across three synchronized architectural views: <strong>Logical State Flows</strong>, <strong>Component C4 Boundaries</strong>, and <strong>Data Flow Diagrams (DFD) with STRIDE threat modeling</strong>. Features infinite pan/zoom canvas, interactive node inspector, live code editor with snippet catalog, and instant SVG/PNG export.
+        </p>
+
+        <!-- Mock wireframe diagram -->
+        <div class="w-full h-32 rounded-lg border p-2 flex gap-2 text-[10px] font-mono select-none" style="background-color: var(--bg-main); border-color: var(--border);">
+          <div class="w-1/3 h-full rounded border flex flex-col justify-between p-2" style="background-color: var(--bg-card); border-color: var(--border);">
+            <div class="flex items-center justify-between text-[9px] text-cyan-300">
+              <span>Code &amp; Lens Editor</span>
+              <span class="text-[8px] px-1 rounded bg-black/30">Mermaid</span>
+            </div>
+            <div class="space-y-1 text-[8px] text-gray-400 font-mono">
+              <div>stateDiagram-v2</div>
+              <div class="text-cyan-400 pl-2">[*] --&gt; Ingress</div>
+              <div class="text-emerald-400 pl-2">Ingress --&gt; Router</div>
+            </div>
+            <div class="text-[8px] text-gray-500">Auto-render: ON</div>
+          </div>
+          <div class="w-2/3 h-full rounded border flex flex-col justify-between p-2 relative overflow-hidden" style="background-color: var(--bg-card); border-color: var(--border);">
+            <div class="flex items-center justify-between text-[9px]">
+              <div class="flex gap-1.5">
+                <span class="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 text-[8px]">Logical</span>
+                <span class="px-1.5 py-0.5 rounded bg-black/20 text-gray-400 text-[8px]">Component C4</span>
+                <span class="px-1.5 py-0.5 rounded bg-black/20 text-gray-400 text-[8px]">DFD &bull; Threats</span>
+              </div>
+              <span class="text-[8px] text-emerald-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Pan/Zoom Canvas</span>
+            </div>
+            <div class="flex items-center justify-center gap-3 py-1">
+              <div class="px-2 py-1 rounded bg-cyan-900/40 border border-cyan-500/40 text-[9px] text-cyan-200">API Gateway</div>
+              <div class="text-gray-500 text-xs">&rarr;</div>
+              <div class="px-2 py-1 rounded bg-purple-900/40 border border-purple-500/40 text-[9px] text-purple-200">Cognitive Router</div>
+              <div class="text-gray-500 text-xs">&rarr;</div>
+              <div class="px-2 py-1 rounded bg-emerald-900/40 border border-emerald-500/40 text-[9px] text-emerald-200">Worker Swarm</div>
+            </div>
+            <div class="flex items-center justify-between text-[8px] text-gray-400">
+              <span>Threat Radar: Level 1 TLS/Sandbox verified</span>
+              <span>Zoom: 100% | Reset</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between text-xs font-semibold" style="color: var(--accent);">
+          <span class="flex items-center gap-1.5">Open Architecture Workbench &rarr;</span>
+          <span class="font-mono text-[11px] text-gray-400">/diagram-workbench.html</span>
         </div>
       </a>
 

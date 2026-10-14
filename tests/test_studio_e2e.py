@@ -432,6 +432,81 @@ def test_layout_lab_modal_zero_reload(page: Page):
     expect(modal).to_be_hidden()
 
 
+def test_diagram_workbench_page_load_and_title(page: Page):
+    """Verify that Architecture Workbench loads properly with tri-lens navigation and SVG viewport."""
+    page.goto(BASE_URL + "/diagram-workbench.html")
+    expect(page).to_have_title("AgyStudio v3 - Architecture Workbench (Logical, Component, DFD)")
+    
+    # Assert header and controls
+    expect(page.locator("#lens-logical")).to_be_visible()
+    expect(page.locator("#lens-component")).to_be_visible()
+    expect(page.locator("#lens-dfd")).to_be_visible()
+    expect(page.locator("#presetSelect")).to_be_visible()
+    expect(page.locator("#securityOverlayBtn")).to_be_visible()
+    expect(page.locator("#aiGenBtn")).to_be_visible()
+    
+    # Assert Mermaid SVG rendered
+    page.wait_for_selector("#diagramContainer svg", timeout=10000)
+    expect(page.locator("#diagramContainer svg")).to_be_visible()
+
+
+def test_diagram_workbench_tri_lens_switching(page: Page):
+    """Verify switching between Logical, Component C4, and Data Flow (DFD) architectural lenses."""
+    page.goto(BASE_URL + "/diagram-workbench.html")
+    page.wait_for_selector("#diagramContainer svg", timeout=10000)
+    
+    editor = page.locator("#dslEditor")
+    
+    # Default initial lens is Component
+    expect(editor).to_have_value(re.compile(r"flowchart TB"))
+    
+    # Switch to Logical lens
+    page.locator("#lens-logical").click()
+    page.wait_for_timeout(400)
+    expect(editor).to_have_value(re.compile(r"stateDiagram-v2"))
+    expect(page.locator("#diagramContainer svg")).to_be_visible()
+    
+    # Switch to DFD lens
+    page.locator("#lens-dfd").click()
+    page.wait_for_timeout(400)
+    expect(editor).to_have_value(re.compile(r"flowchart LR"))
+    expect(page.locator("#diagramContainer svg")).to_be_visible()
+    
+    # Switch back to Component lens
+    page.locator("#lens-component").click()
+    page.wait_for_timeout(400)
+    expect(editor).to_have_value(re.compile(r"flowchart TB"))
+
+
+def test_diagram_workbench_threat_overlay_and_export(page: Page):
+    """Verify STRIDE threat overlay toggling and export buttons in Architecture Workbench."""
+    page.goto(BASE_URL + "/diagram-workbench.html")
+    page.wait_for_selector("#diagramContainer svg", timeout=10000)
+    
+    # Toggle threat radar
+    threat_btn = page.locator("#securityOverlayBtn")
+    threat_btn.click()
+    
+    # Verify threat banner is displayed
+    threat_banner = page.locator("#threatBanner")
+    expect(threat_banner).to_be_visible()
+    expect(threat_banner).to_contain_text("STRIDE Threat Assessment")
+    
+    # Open Export dropdown
+    export_dropdown = page.locator("#exportDropdownBtn")
+    export_dropdown.click()
+    
+    # Verify export buttons inside dropdown
+    export_svg_btn = page.locator("#exportSvgBtn")
+    expect(export_svg_btn).to_be_visible()
+    copy_mermaid_btn = page.locator("#copyMermaidBtn")
+    expect(copy_mermaid_btn).to_be_visible()
+    
+    # Test copy mermaid action
+    copy_mermaid_btn.click()
+
+
+
 
 
 
